@@ -51,7 +51,7 @@ preferred-citation:
   title: SISO Adaptive Control
   version: 1.0.0
   date-released: 2026-07-31
-  doi:10.5281/zenodo.21711090
+  doi: 10.5281/zenodo.21711090
   authors:
     - family-names: Bukovsky
       given-names: Ivo
