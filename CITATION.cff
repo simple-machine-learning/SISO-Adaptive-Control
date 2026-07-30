@@ -53,7 +53,7 @@ preferred-citation:
   authors:
     - family-names: Bukovsky
       given-names: Ivo
-  repository-code: https://github.com/YOUR_GITHUB_USERNAME/small-data-machine-learning
+  repository-code: https://github.com/simple-machine-learning/SISO-Adaptive-Control
 
 references:
   - type: article
