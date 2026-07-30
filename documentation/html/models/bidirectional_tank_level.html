@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Process: bidirectional-pump nonlinear tank &#8212; SISO Adaptive Control  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=12dfc556" />
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Soil ecology: carbon priming" href="soil_carbon_priming.html" />
+    <link rel="prev" title="Power grid: nonlinear BESS microgrid frequency with delay" href="microgrid_frequency_bess_nonlinear_with_delay.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="process-bidirectional-pump-nonlinear-tank">
+<h1>Process: bidirectional-pump nonlinear tank<a class="headerlink" href="#process-bidirectional-pump-nonlinear-tank" title="Link to this heading">¶</a></h1>
+<p>Python model: <code class="docutils literal notranslate"><span class="pre">plant_models.bidirectional_tank_level</span></code></p>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Link to this heading">¶</a></h2>
+<p>Nonlinear SISO tank-level plant with a bidirectional pump.</p>
+<p>The same signed pump command fills or drains the tank. Gravity outflow is
+proportional to sqrt(h), which makes upward and downward transients different,
+while the bidirectional pump preserves SISO control authority in both
+directions around the nominal operating point.</p>
+<p>state vector <span class="math notranslate nohighlight">\(\mathbf{x}\)</span> = [h, q_pump, 0, 0, 0, 0, 0]
+The controlled output is <span class="math notranslate nohighlight">\(y=h-h_0\)</span> [m].</p>
+</section>
+<section id="controlled-input-and-output">
+<h2>Controlled input and output<a class="headerlink" href="#controlled-input-and-output" title="Link to this heading">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 14.0%" />
+<col style="width: 22.0%" />
+<col style="width: 28.0%" />
+<col style="width: 36.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Role</p></th>
+<th class="head"><p>Mathematical notation</p></th>
+<th class="head"><p>Python/interface name</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Input</p></td>
+<td><p><span class="math notranslate nohighlight">\(u(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">u</span></code></p></td>
+<td><p>Bidirectional pump command</p></td>
+</tr>
+<tr class="row-odd"><td><p>Output</p></td>
+<td><p><span class="math notranslate nohighlight">\(\Delta h(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">y</span></code> / <code class="docutils literal notranslate"><span class="pre">level_deviation</span></code></p></td>
+<td><p>Tank-level deviation</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="model-equations">
+<h2>Model equations<a class="headerlink" href="#model-equations" title="Link to this heading">¶</a></h2>
+<section id="state-variables">
+<h3>State variables<a class="headerlink" href="#state-variables" title="Link to this heading">¶</a></h3>
+<p>The physical state vector used by the model is</p>
+<div class="math notranslate nohighlight">
+\[\mathbf{x}(t)=[h(t),\,q_p(t)]^\mathsf{T}.\]</div>
+</section>
+<section id="static-and-auxiliary-relations">
+<h3>Static and auxiliary relations<a class="headerlink" href="#static-and-auxiliary-relations" title="Link to this heading">¶</a></h3>
+<p>The auxiliary quantities are</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+q_{\mathrm{cmd}}(t)&amp;=q_0+k_p\tanh(u(t)) \\
+q_{\mathrm{out}}(t)&amp;=c_o\sqrt{\max(h(t),0)}
+\end{aligned}\end{split}\]</div>
+</section>
+<section id="state-equations">
+<h3>State equations<a class="headerlink" href="#state-equations" title="Link to this heading">¶</a></h3>
+<p>The implemented continuous-time dynamics are</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+\dot{h}(t)&amp;=\dfrac{q_p(t)-q_{\mathrm{out}}(t)}{A} \\
+\dot{q}_p(t)&amp;=\dfrac{q_{\mathrm{cmd}}(t)-q_p(t)}{\tau_p}
+\end{aligned}\end{split}\]</div>
+<p>At the physical boundary <span class="math notranslate nohighlight">\(h(t)=0\)</span>, the implementation prevents a negative level; if a numerical integration stage crosses below zero, a restoring derivative is applied.</p>
+</section>
+<section id="output-equation">
+<h3>Output equation<a class="headerlink" href="#output-equation" title="Link to this heading">¶</a></h3>
+<p>The controlled input and output used by the identification and control algorithms are defined explicitly as</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+u(t)\in\mathbb{R}\quad\text{(bidirectional pump command)},\\
+y(t)=\Delta h(t)=h(t)-h_0.
+\end{aligned}\end{split}\]</div>
+</section>
+</section>
+<section id="parameter-implementation">
+<h2>Parameter implementation<a class="headerlink" href="#parameter-implementation" title="Link to this heading">¶</a></h2>
+<p>The editable default parameters are defined in <code class="docutils literal notranslate"><span class="pre">apps/simulated/plant_models/bidirectional_tank_level.py</span></code>. They are fields of <code class="docutils literal notranslate"><span class="pre">PlantParams</span></code> near the beginning of that file. The function <code class="docutils literal notranslate"><span class="pre">default_params()</span></code> returns the default parameter object used by the GUI and simulation. The parameter table below maps the Python field names to the mathematical symbols used in the equations.</p>
+</section>
+<section id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Link to this heading">¶</a></h2>
+<p>The mathematical notation is used in the equations above. The Python name is the exact field in <code class="docutils literal notranslate"><span class="pre">PlantParams</span></code>; the last column explains how the parameter enters this specific model.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 25.0%" />
+<col style="width: 18.0%" />
+<col style="width: 37.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Mathematical notation</p></th>
+<th class="head"><p>Python name</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(h_0\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">h0</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1.0</span></code></p></td>
+<td><p>Initial or nominal liquid level.</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(A\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">area</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1.6</span></code></p></td>
+<td><p>Tank cross-sectional area converting net volumetric flow into level rate.</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(c_o\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">outflow_coeff</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.34</span></code></p></td>
+<td><p>Coefficient of the gravity-driven outlet flow.</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(k_p\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pump_gain</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.62</span></code></p></td>
+<td><p>Gain from normalized input to signed pump-flow command.</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\tau_p\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tau_pump</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.22</span></code></p></td>
+<td><p>First-order time constant of the infusion/pump actuator.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="variables">
+<h2>Variables<a class="headerlink" href="#variables" title="Link to this heading">¶</a></h2>
+<p>The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. The table contains ODE states and algebraic signals reported by <code class="docutils literal notranslate"><span class="pre">algebraic_outputs()</span></code>. A reported signal need not be an independent state, but it must be explicitly defined by the equations, an auxiliary relation, or the implementation reference below.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22.0%" />
+<col style="width: 28.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Mathematical notation</p></th>
+<th class="head"><p>Python name</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(u(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">u</span></code></p></td>
+<td><p>Bidirectional pump command</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\Delta h(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">y</span></code> / <code class="docutils literal notranslate"><span class="pre">level_deviation</span></code></p></td>
+<td><p>Tank-level deviation</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(h(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">level</span></code></p></td>
+<td><p>Liquid level</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(q_p(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pump_flow</span></code></p></td>
+<td><p>Signed pump flow</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(q_{\mathrm{out}}(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gravity_outflow</span></code></p></td>
+<td><p>Gravity outflow</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(q_{\mathrm{net}}(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">net_flow</span></code></p></td>
+<td><p>Net tank flow</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="additional-symbols">
+<h2>Additional symbols<a class="headerlink" href="#additional-symbols" title="Link to this heading">¶</a></h2>
+<p>Symbols used by the model equations that are not already listed in the state or parameter tables.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 24.0%" />
+<col style="width: 28.0%" />
+<col style="width: 48.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Mathematical notation</p></th>
+<th class="head"><p>Python/interface name</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(q_{\mathrm{cmd}}(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">q_mathrmcmd</span></code></p></td>
+<td><p>Saturated bidirectional flow command generated from the control input.</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(y(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">y</span></code></p></td>
+<td><p>Liquid-level deviation from its operating-point value.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="model-provenance-and-references">
+<h2>Model provenance and references<a class="headerlink" href="#model-provenance-and-references" title="Link to this heading">¶</a></h2>
+<p>This is a reduced-order educational benchmark assembled from standard physical or domain-modeling relations. It is not a parameter-identical reproduction of the cited source. The reference below documents the principal model structure or constitutive relations used.</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://www.feedback-instruments.com/products/process-control/coupled-tanks/">Feedback Instruments, Coupled Tanks control-system model (mass balance and Torricelli outflow).</a></p></li>
+</ul>
+</section>
+<section id="implementation-reference">
+<h2>Implementation reference<a class="headerlink" href="#implementation-reference" title="Link to this heading">¶</a></h2>
+<p>Initial state:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">initial_state</span><span class="p">(</span><span class="n">par</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">par</span><span class="o">.</span><span class="n">h0</span><span class="p">,</span> <span class="n">par</span><span class="o">.</span><span class="n">q0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Algebraic outputs:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">algebraic_outputs</span><span class="p">(</span><span class="n">chi</span><span class="p">,</span> <span class="n">par</span><span class="p">):</span>
+    <span class="n">h</span><span class="p">,</span> <span class="n">q_pump</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">chi</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)[:</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">q_out</span> <span class="o">=</span> <span class="n">par</span><span class="o">.</span><span class="n">outflow_coeff</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;level&quot;</span><span class="p">:</span> <span class="n">h</span><span class="p">,</span>
+        <span class="s2">&quot;level_deviation&quot;</span><span class="p">:</span> <span class="n">h</span> <span class="o">-</span> <span class="n">par</span><span class="o">.</span><span class="n">h0</span><span class="p">,</span>
+        <span class="s2">&quot;pump_flow&quot;</span><span class="p">:</span> <span class="n">q_pump</span><span class="p">,</span>
+        <span class="s2">&quot;gravity_outflow&quot;</span><span class="p">:</span> <span class="n">q_out</span><span class="p">,</span>
+        <span class="s2">&quot;net_flow&quot;</span><span class="p">:</span> <span class="n">q_pump</span> <span class="o">-</span> <span class="n">q_out</span><span class="p">,</span>
+    <span class="p">}</span>
+</pre></div>
+</div>
+<p>ODE right-hand side:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">rhs</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">chi</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">par</span><span class="p">):</span>
+    <span class="n">h</span><span class="p">,</span> <span class="n">q_pump</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">chi</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)[:</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">q_cmd</span> <span class="o">=</span> <span class="n">par</span><span class="o">.</span><span class="n">q0</span> <span class="o">+</span> <span class="n">par</span><span class="o">.</span><span class="n">pump_gain</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">u</span><span class="p">))</span>
+    <span class="n">dq_pump</span> <span class="o">=</span> <span class="p">(</span><span class="n">q_cmd</span> <span class="o">-</span> <span class="n">q_pump</span><span class="p">)</span> <span class="o">/</span> <span class="n">par</span><span class="o">.</span><span class="n">tau_pump</span>
+    <span class="n">q_out</span> <span class="o">=</span> <span class="n">par</span><span class="o">.</span><span class="n">outflow_coeff</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+    <span class="n">dh</span> <span class="o">=</span> <span class="p">(</span><span class="n">q_pump</span> <span class="o">-</span> <span class="n">q_out</span><span class="p">)</span> <span class="o">/</span> <span class="n">par</span><span class="o">.</span><span class="n">area</span>
+    <span class="c1"># Keep the continuous state on the physical half-line. If a numerical</span>
+    <span class="c1"># integration stage crosses slightly below zero, drive it smoothly back</span>
+    <span class="c1"># instead of leaving it trapped at a negative level.</span>
+    <span class="k">if</span> <span class="n">h</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="n">dh</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">dh</span><span class="p">,</span> <span class="o">-</span><span class="n">h</span> <span class="o">/</span> <span class="mf">0.01</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">h</span> <span class="o">==</span> <span class="mf">0.0</span> <span class="ow">and</span> <span class="n">dh</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="n">dh</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">dh</span><span class="p">,</span> <span class="n">dq_pump</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">SISO Adaptive Control</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Software modes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../software_overview.html">Software overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../measured_data.html">Measured-data input and processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scope_and_limitations.html">Purpose, scope and limitations</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Models and control</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Plant models</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#mathematical-notation">Mathematical notation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../honu/index.html">HONU, learning methods, and GUI parameters</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Plant models</a><ul>
+      <li>Previous: <a href="microgrid_frequency_bess_nonlinear_with_delay.html" title="previous chapter">Power grid: nonlinear BESS microgrid frequency with delay</a></li>
+      <li>Next: <a href="soil_carbon_priming.html" title="next chapter">Soil ecology: carbon priming</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/models/bidirectional_tank_level.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

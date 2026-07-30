@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Software overview &#8212; SISO Adaptive Control  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Measured-data input and processing" href="measured_data.html" />
+    <link rel="prev" title="SISO Adaptive Control" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="software-overview">
+<h1>Software overview<a class="headerlink" href="#software-overview" title="Link to this heading">¶</a></h1>
+<section id="main-launcher">
+<h2>Main launcher<a class="headerlink" href="#main-launcher" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">launcher.py</span></code> is the common entry point. It presents the two software modes,
+explains their purpose, and starts the selected GUI in its own process. On
+Windows, use <code class="docutils literal notranslate"><span class="pre">RUN_SOFTWARE.bat</span></code>.</p>
+</section>
+<section id="simulated-systems">
+<h2>Simulated systems<a class="headerlink" href="#simulated-systems" title="Link to this heading">¶</a></h2>
+<p>The simulated mode is a controlled learning and experimentation environment.
+It generates input-output data from nonlinear physical ODE models and supports:</p>
+<ul class="simple">
+<li><p>selection of the plant and its physical parameters,</p></li>
+<li><p>generation of excitation, disturbance and reference signals,</p></li>
+<li><p>LNU or QNU plant identification using batch, GD, NGD or LM learning,</p></li>
+<li><p>MRAC controller training and closed-loop tests on the ODE plant,</p></li>
+<li><p>HONU-based MPC experiments and diagnostic plots.</p></li>
+</ul>
+<p>The simulated workflow should use bounded identification trajectories. An ODE
+plant that is open-loop unstable must first be placed under an independent
+stabilizing feedback law before its data are treated as admissible HONU
+training data. MRAC or MPC can then be studied as a performance-improvement
+layer within that stabilized operating regime.</p>
+</section>
+<section id="measured-systems">
+<h2>Measured systems<a class="headerlink" href="#measured-systems" title="Link to this heading">¶</a></h2>
+<p>The measured mode replaces ODE data generation by an import and preprocessing
+stage. It supports:</p>
+<ul class="simple">
+<li><p>import of supported tabular measurement files,</p></li>
+<li><p>selection of time, input and output channels,</p></li>
+<li><p>definition of the working sampling period and optional downsampling,</p></li>
+<li><p>LNU or QNU identification from the resulting sampled record,</p></li>
+<li><p>MRAC and MPC workflows using the same HONU concepts as simulated mode.</p></li>
+</ul>
+<p>Imported records must come from a naturally stable or independently
+pre-stabilized experiment. The measured-data mode is not intended to identify
+an uncontrolled unstable plant from divergent trajectories.</p>
+</section>
+<section id="shared-and-mode-specific-implementation">
+<h2>Shared and mode-specific implementation<a class="headerlink" href="#shared-and-mode-specific-implementation" title="Link to this heading">¶</a></h2>
+<p>The shared <code class="docutils literal notranslate"><span class="pre">common</span></code> directory contains numerical modules that were identical
+in both original packages: HONU basis construction, LM identification support,
+reference-signal generation and general signal generation. Data acquisition,
+configuration and GUI execution remain mode-specific because they differ
+materially and are part of the validated behaviour of each application.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">SISO Adaptive Control</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Software modes</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Software overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#main-launcher">Main launcher</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#simulated-systems">Simulated systems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#measured-systems">Measured systems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#shared-and-mode-specific-implementation">Shared and mode-specific implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="measured_data.html">Measured-data input and processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scope_and_limitations.html">Purpose, scope and limitations</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Models and control</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="models/index.html">Plant models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="honu/index.html">HONU, learning methods, and GUI parameters</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">SISO Adaptive Control</a></li>
+      <li>Next: <a href="measured_data.html" title="next chapter">Measured-data input and processing</a></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="_sources/software_overview.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

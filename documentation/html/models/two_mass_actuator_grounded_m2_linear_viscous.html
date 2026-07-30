@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Mechanical: two masses, viscous damping &#8212; SISO Adaptive Control  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=12dfc556" />
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Network: nonlinear router fluid queue" href="network_router_fluid_queue.html" />
+    <link rel="prev" title="Mechanical: two masses, LuGre friction 2" href="two_mass_actuator_grounded_m2_lugre2.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="mechanical-two-masses-viscous-damping">
+<h1>Mechanical: two masses, viscous damping<a class="headerlink" href="#mechanical-two-masses-viscous-damping" title="Link to this heading">¶</a></h1>
+<p>Python model: <code class="docutils literal notranslate"><span class="pre">plant_models.two_mass_actuator_grounded_m2_linear_viscous</span></code></p>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Link to this heading">¶</a></h2>
+<p>Two-mass plant with second-order actuator, grounded masses, and linear viscous
+damping only.</p>
+<p>This file contains the complete setup of this physical model. Algorithmic setup
+for scripts 01, 02 and 03 remains in project_setup.py.</p>
+<p>State vector:</p>
+<blockquote>
+<div><p>chi = [y1, dy1, y2, dy2, F1, dF1, z_f]</p>
+</div></blockquote>
+<p>The last state z_f is unused and is kept only for API compatibility with the
+LuGre model.</p>
+</section>
+<section id="controlled-input-and-output">
+<h2>Controlled input and output<a class="headerlink" href="#controlled-input-and-output" title="Link to this heading">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 14.0%" />
+<col style="width: 22.0%" />
+<col style="width: 28.0%" />
+<col style="width: 36.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Role</p></th>
+<th class="head"><p>Mathematical notation</p></th>
+<th class="head"><p>Python/interface name</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Input</p></td>
+<td><p><span class="math notranslate nohighlight">\(u(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">u</span></code></p></td>
+<td><p>Actuator command</p></td>
+</tr>
+<tr class="row-odd"><td><p>Output</p></td>
+<td><p><span class="math notranslate nohighlight">\(y_2(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">y</span></code> / <code class="docutils literal notranslate"><span class="pre">y2</span></code></p></td>
+<td><p>Mass 2 displacement</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="model-equations">
+<h2>Model equations<a class="headerlink" href="#model-equations" title="Link to this heading">¶</a></h2>
+<section id="state-variables">
+<h3>State variables<a class="headerlink" href="#state-variables" title="Link to this heading">¶</a></h3>
+<p>The physical state vector used by the model is</p>
+<div class="math notranslate nohighlight">
+\[\mathbf{x}(t)=[y_1(t),\,v_1(t),\,y_2(t),\,v_2(t),\,F_1(t),\,q_F(t),\,z_f(t)]^\mathsf{T}.\]</div>
+</section>
+<section id="static-and-auxiliary-relations">
+<h3>Static and auxiliary relations<a class="headerlink" href="#static-and-auxiliary-relations" title="Link to this heading">¶</a></h3>
+<p>No additional static relation is required; the input enters directly in the state equations.</p>
+</section>
+<section id="state-equations">
+<h3>State equations<a class="headerlink" href="#state-equations" title="Link to this heading">¶</a></h3>
+<p>The auxiliary quantities are</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+F_2(t)&amp;=k_p \cdot (y_1(t)-y_2(t))+b_p \cdot (v_1(t)-v_2(t)) \\
+F_f(t)&amp;=0
+\end{aligned}\end{split}\]</div>
+<p>The implemented continuous-time dynamics are</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+\dot{y}_1(t)&amp;=v_1(t) \\
+\dot{v}_1(t)&amp;=\dfrac{F_1(t)-F_2(t)-k_{g1} \cdot y_1(t)-k_1 \cdot v_1(t)}{m_1} \\
+\dot{y}_2(t)&amp;=v_2(t) \\
+\dot{v}_2(t)&amp;=\dfrac{F_2(t)-k_{g2} \cdot y_2(t)-k_2 \cdot v_2(t)-F_f(t)}{m_2} \\
+\dot{F}_1(t)&amp;=q_F(t) \\
+\dot{q}_F(t)&amp;=\omega_a^2 \cdot k_a \cdot u(t)-2 \cdot \zeta_a \cdot \omega_a \cdot q_F(t)-\omega_a^2 \cdot F_1(t)
+\end{aligned}\end{split}\]</div>
+<p>The seventh array element retained by the Python interface is unused and is not a physical state.</p>
+</section>
+<section id="output-equation">
+<h3>Output equation<a class="headerlink" href="#output-equation" title="Link to this heading">¶</a></h3>
+<p>The controlled input and output used by the identification and control algorithms are defined explicitly as</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+u(t)\in\mathbb{R}\quad\text{(actuator command)},\\
+y(t)=y_2(t).
+\end{aligned}\end{split}\]</div>
+</section>
+</section>
+<section id="parameter-implementation">
+<h2>Parameter implementation<a class="headerlink" href="#parameter-implementation" title="Link to this heading">¶</a></h2>
+<p>The editable default parameters are defined in <code class="docutils literal notranslate"><span class="pre">apps/simulated/plant_models/two_mass_actuator_grounded_m2_linear_viscous.py</span></code>. They are fields of <code class="docutils literal notranslate"><span class="pre">PlantParams</span></code> near the beginning of that file. The function <code class="docutils literal notranslate"><span class="pre">default_params()</span></code> returns the default parameter object used by the GUI and simulation. The parameter table below maps the Python field names to the mathematical symbols used in the equations.</p>
+</section>
+<section id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Link to this heading">¶</a></h2>
+<p>The mathematical notation is used in the equations above. The Python name is the exact field in <code class="docutils literal notranslate"><span class="pre">PlantParams</span></code>; the last column explains how the parameter enters this specific model.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 25.0%" />
+<col style="width: 18.0%" />
+<col style="width: 37.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Mathematical notation</p></th>
+<th class="head"><p>Python name</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(m_1\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">m1</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1.0</span></code></p></td>
+<td><p>Mass of the first mechanical body.</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(m_2\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">m2</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1.0</span></code></p></td>
+<td><p>Mass of the second mechanical body.</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(k_p\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">kp</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">25.0</span></code></p></td>
+<td><p>Linear coupling-spring stiffness between the two masses.</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(b_p\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bp</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.0</span></code></p></td>
+<td><p>Viscous coupling damping between the two masses.</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(k_1\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">k1</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.35</span></code></p></td>
+<td><p>Linear grounding stiffness of mass 1.</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(k_2\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">k2</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.2</span></code></p></td>
+<td><p>Linear grounding stiffness of mass 2.</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(k_{g1}\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">kg1</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.0</span></code></p></td>
+<td><p>Additional grounding stiffness acting on mass 1.</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(k_{g2}\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">kg2</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">2.0</span></code></p></td>
+<td><p>Additional grounding stiffness acting on mass 2.</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(k_a\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ka</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1.0</span></code></p></td>
+<td><p>Static gain of the second-order actuator.</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\omega_a\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">omega_a</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">18.0</span></code></p></td>
+<td><p>Natural angular frequency of the second-order actuator.</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\zeta_a\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">zeta_a</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.65</span></code></p></td>
+<td><p>Damping ratio of the second-order actuator.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="variables">
+<h2>Variables<a class="headerlink" href="#variables" title="Link to this heading">¶</a></h2>
+<p>The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. The table contains ODE states and algebraic signals reported by <code class="docutils literal notranslate"><span class="pre">algebraic_outputs()</span></code>. A reported signal need not be an independent state, but it must be explicitly defined by the equations, an auxiliary relation, or the implementation reference below.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22.0%" />
+<col style="width: 28.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Mathematical notation</p></th>
+<th class="head"><p>Python name</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(u(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">u</span></code></p></td>
+<td><p>Actuator command</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(y_{2}(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">y</span></code> / <code class="docutils literal notranslate"><span class="pre">y2</span></code></p></td>
+<td><p>Mass 2 displacement</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(y_{1}(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">y1</span></code></p></td>
+<td><p>Mass 1 displacement</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(v_{1}(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dy1</span></code></p></td>
+<td><p>Mass 1 velocity</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(v_{2}(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dy2</span></code></p></td>
+<td><p>Mass 2 velocity</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(F_{1}(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">F1</span></code></p></td>
+<td><p>Actuator force</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(q_F(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dF1</span></code></p></td>
+<td><p>Actuator-force rate, equal to <span class="math notranslate nohighlight">\(\dot F_1\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(F_{2}(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">F2</span></code></p></td>
+<td><p>Coupling force</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(z_f(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">z_f</span></code></p></td>
+<td><p>Friction internal state; retained for interface compatibility and constant in the viscous model</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(Ff(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">F_f</span></code></p></td>
+<td><p>Viscous friction force</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="additional-symbols">
+<h2>Additional symbols<a class="headerlink" href="#additional-symbols" title="Link to this heading">¶</a></h2>
+<p>Symbols used by the model equations that are not already listed in the state or parameter tables.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 24.0%" />
+<col style="width: 28.0%" />
+<col style="width: 48.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Mathematical notation</p></th>
+<th class="head"><p>Python/interface name</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(F_f(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">F_f</span></code></p></td>
+<td><p>Friction force acting on the mechanical subsystem.</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(y(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">y</span></code></p></td>
+<td><p>Mass-2 displacement used as the controlled output.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="model-provenance-and-references">
+<h2>Model provenance and references<a class="headerlink" href="#model-provenance-and-references" title="Link to this heading">¶</a></h2>
+<p>This is a reduced-order educational benchmark assembled from standard physical or domain-modeling relations. It is not a parameter-identical reproduction of the cited source. The reference below documents the principal model structure or constitutive relations used.</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://www.pearson.com/en-us/subject-catalog/p/system-dynamics/P200000003295">K. Ogata, System Dynamics (standard coupled mass-spring-damper formulation).</a></p></li>
+</ul>
+</section>
+<section id="implementation-reference">
+<h2>Implementation reference<a class="headerlink" href="#implementation-reference" title="Link to this heading">¶</a></h2>
+<p>Initial state:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">initial_state</span><span class="p">(</span><span class="n">par</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Algebraic outputs:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">algebraic_outputs</span><span class="p">(</span><span class="n">chi</span><span class="p">,</span> <span class="n">par</span><span class="p">):</span>
+    <span class="n">y1</span> <span class="o">=</span> <span class="n">chi</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">dy1</span> <span class="o">=</span> <span class="n">chi</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">y2</span> <span class="o">=</span> <span class="n">chi</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">dy2</span> <span class="o">=</span> <span class="n">chi</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">F1</span> <span class="o">=</span> <span class="n">chi</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+    <span class="n">z_f</span> <span class="o">=</span> <span class="n">chi</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span>
+
+    <span class="n">F2</span> <span class="o">=</span> <span class="n">par</span><span class="o">.</span><span class="n">kp</span> <span class="o">*</span> <span class="p">(</span><span class="n">y1</span> <span class="o">-</span> <span class="n">y2</span><span class="p">)</span> <span class="o">+</span> <span class="n">par</span><span class="o">.</span><span class="n">bp</span> <span class="o">*</span> <span class="p">(</span><span class="n">dy1</span> <span class="o">-</span> <span class="n">dy2</span><span class="p">)</span>
+    <span class="n">F_f</span><span class="p">,</span> <span class="n">dz_f</span><span class="p">,</span> <span class="n">g_f</span> <span class="o">=</span> <span class="n">friction_force</span><span class="p">(</span><span class="n">dy2</span><span class="p">,</span> <span class="n">z_f</span><span class="p">,</span> <span class="n">par</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;y1&quot;</span><span class="p">:</span> <span class="n">y1</span><span class="p">,</span>
+        <span class="s2">&quot;dy1&quot;</span><span class="p">:</span> <span class="n">dy1</span><span class="p">,</span>
+        <span class="s2">&quot;y2&quot;</span><span class="p">:</span> <span class="n">y2</span><span class="p">,</span>
+        <span class="s2">&quot;dy2&quot;</span><span class="p">:</span> <span class="n">dy2</span><span class="p">,</span>
+        <span class="s2">&quot;F1&quot;</span><span class="p">:</span> <span class="n">F1</span><span class="p">,</span>
+        <span class="s2">&quot;F2&quot;</span><span class="p">:</span> <span class="n">F2</span><span class="p">,</span>
+        <span class="s2">&quot;z_f&quot;</span><span class="p">:</span> <span class="n">z_f</span><span class="p">,</span>
+        <span class="s2">&quot;F_f&quot;</span><span class="p">:</span> <span class="n">F_f</span><span class="p">,</span>
+        <span class="s2">&quot;dz_f&quot;</span><span class="p">:</span> <span class="n">dz_f</span><span class="p">,</span>
+        <span class="s2">&quot;g_f&quot;</span><span class="p">:</span> <span class="n">g_f</span><span class="p">,</span>
+    <span class="p">}</span>
+</pre></div>
+</div>
+<p>ODE right-hand side:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">rhs</span><span class="p">(</span><span class="n">t_local</span><span class="p">,</span> <span class="n">chi</span><span class="p">,</span> <span class="n">u_const</span><span class="p">,</span> <span class="n">par</span><span class="p">):</span>
+    <span class="n">y1</span> <span class="o">=</span> <span class="n">chi</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">dy1</span> <span class="o">=</span> <span class="n">chi</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">y2</span> <span class="o">=</span> <span class="n">chi</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">dy2</span> <span class="o">=</span> <span class="n">chi</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">F1</span> <span class="o">=</span> <span class="n">chi</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+    <span class="n">dF1</span> <span class="o">=</span> <span class="n">chi</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+
+    <span class="n">F2</span> <span class="o">=</span> <span class="n">par</span><span class="o">.</span><span class="n">kp</span> <span class="o">*</span> <span class="p">(</span><span class="n">y1</span> <span class="o">-</span> <span class="n">y2</span><span class="p">)</span> <span class="o">+</span> <span class="n">par</span><span class="o">.</span><span class="n">bp</span> <span class="o">*</span> <span class="p">(</span><span class="n">dy1</span> <span class="o">-</span> <span class="n">dy2</span><span class="p">)</span>
+    <span class="n">F_f</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">dz_f</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="n">ddy1</span> <span class="o">=</span> <span class="p">(</span><span class="n">F1</span> <span class="o">-</span> <span class="n">F2</span> <span class="o">-</span> <span class="n">par</span><span class="o">.</span><span class="n">kg1</span> <span class="o">*</span> <span class="n">y1</span> <span class="o">-</span> <span class="n">par</span><span class="o">.</span><span class="n">k1</span> <span class="o">*</span> <span class="n">dy1</span><span class="p">)</span> <span class="o">/</span> <span class="n">par</span><span class="o">.</span><span class="n">m1</span>
+    <span class="n">ddy2</span> <span class="o">=</span> <span class="p">(</span><span class="n">F2</span> <span class="o">-</span> <span class="n">par</span><span class="o">.</span><span class="n">kg2</span> <span class="o">*</span> <span class="n">y2</span> <span class="o">-</span> <span class="n">par</span><span class="o">.</span><span class="n">k2</span> <span class="o">*</span> <span class="n">dy2</span> <span class="o">-</span> <span class="n">F_f</span><span class="p">)</span> <span class="o">/</span> <span class="n">par</span><span class="o">.</span><span class="n">m2</span>
+    <span class="n">ddF1</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">par</span><span class="o">.</span><span class="n">omega_a</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">par</span><span class="o">.</span><span class="n">ka</span> <span class="o">*</span> <span class="n">u_const</span>
+        <span class="o">-</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">par</span><span class="o">.</span><span class="n">zeta_a</span> <span class="o">*</span> <span class="n">par</span><span class="o">.</span><span class="n">omega_a</span> <span class="o">*</span> <span class="n">dF1</span>
+        <span class="o">-</span> <span class="n">par</span><span class="o">.</span><span class="n">omega_a</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">F1</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">dy1</span><span class="p">,</span> <span class="n">ddy1</span><span class="p">,</span> <span class="n">dy2</span><span class="p">,</span> <span class="n">ddy2</span><span class="p">,</span> <span class="n">dF1</span><span class="p">,</span> <span class="n">ddF1</span><span class="p">,</span> <span class="n">dz_f</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">SISO Adaptive Control</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Software modes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../software_overview.html">Software overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../measured_data.html">Measured-data input and processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scope_and_limitations.html">Purpose, scope and limitations</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Models and control</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Plant models</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#mathematical-notation">Mathematical notation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../honu/index.html">HONU, learning methods, and GUI parameters</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Plant models</a><ul>
+      <li>Previous: <a href="two_mass_actuator_grounded_m2_lugre2.html" title="previous chapter">Mechanical: two masses, LuGre friction 2</a></li>
+      <li>Next: <a href="network_router_fluid_queue.html" title="next chapter">Network: nonlinear router fluid queue</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/models/two_mass_actuator_grounded_m2_linear_viscous.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

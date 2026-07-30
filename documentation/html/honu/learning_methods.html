@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>HONU learning: Ridge, GD, NGD, and L-M &#8212; SISO Adaptive Control  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=12dfc556" />
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="HONU MRAC architecture and recurrent controller learning" href="mrac_architecture.html" />
+    <link rel="prev" title="Plant HONU: LNU and QNU" href="honu_models.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="honu-learning-ridge-gd-ngd-and-l-m">
+<h1>HONU learning: Ridge, GD, NGD, and L-M<a class="headerlink" href="#honu-learning-ridge-gd-ngd-and-l-m" title="Link to this heading">¶</a></h1>
+<section id="learning-objective-and-notation">
+<h2>Learning objective and notation<a class="headerlink" href="#learning-objective-and-notation" title="Link to this heading">¶</a></h2>
+<p>For either an LNU or QNU plant, let</p>
+<div class="math notranslate nohighlight">
+\[\hat y(k)=\boldsymbol{w}^{\mathsf T}\boldsymbol{\phi}(k),
+\qquad
+e(k)=y(k)-\hat y(k).\]</div>
+<p>The instantaneous and batch losses are</p>
+<div class="math notranslate nohighlight">
+\[E_k=\frac{1}{2}e^2(k),
+\qquad
+E=\sum_{k=1}^{N}E_k
+=\frac{1}{2}\left\|\boldsymbol{e}\right\|_2^2.\]</div>
+<p>Since</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial E_k}{\partial\boldsymbol{w}}
+=-e(k)\boldsymbol{\phi}(k),\]</div>
+<p>all implemented plant-learning methods differ primarily in how this gradient is
+scaled, accumulated or regularized.</p>
+</section>
+<section id="batch-least-squares-and-ridge">
+<h2>Batch least squares and Ridge<a class="headerlink" href="#batch-least-squares-and-ridge" title="Link to this heading">¶</a></h2>
+<p>Without regularization, the stationary condition is</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\Phi}^{\mathsf T}\boldsymbol{\Phi}\boldsymbol{w}
+=\boldsymbol{\Phi}^{\mathsf T}\boldsymbol{y}.\]</div>
+<p>Ridge identification minimizes</p>
+<div class="math notranslate nohighlight">
+\[E_R(\boldsymbol{w})=
+\frac{1}{2}\left\|\boldsymbol{y}-\boldsymbol{\Phi}\boldsymbol{w}\right\|_2^2
++\frac{\lambda}{2}\left\|\boldsymbol{L}\boldsymbol{w}\right\|_2^2,\]</div>
+<p>where <span class="math notranslate nohighlight">\(\boldsymbol{L}\)</span> is normally the identity except that the bias may
+be excluded from regularization. The solution is</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{w}=
+\left(\boldsymbol{\Phi}^{\mathsf T}\boldsymbol{\Phi}
++\lambda\boldsymbol{L}^{\mathsf T}\boldsymbol{L}\right)^{-1}
+\boldsymbol{\Phi}^{\mathsf T}\boldsymbol{y}.\]</div>
+<p>In numerical implementation the corresponding linear system should be solved
+directly rather than explicitly forming the matrix inverse. Ridge is the
+preferred deterministic baseline because the HONU is linear in its weights.
+Increasing <span class="math notranslate nohighlight">\(\lambda\)</span> improves conditioning and reduces weight magnitude,
+but increases bias. For a QNU, stronger regularization is often necessary due
+to the large and strongly correlated polynomial basis.</p>
+</section>
+<section id="gradient-descent">
+<h2>Gradient descent<a class="headerlink" href="#gradient-descent" title="Link to this heading">¶</a></h2>
+<p>A sample-by-sample GD step follows directly from steepest descent:</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{w}(k+1)=\boldsymbol{w}(k)
+-\mu_w\frac{\partial E_k}{\partial\boldsymbol{w}}
+=\boldsymbol{w}(k)+\mu_w e(k)\boldsymbol{\phi}(k).\]</div>
+<p>Substituting <span class="math notranslate nohighlight">\(e(k)=y(k)-\boldsymbol{w}^{\mathsf T}(k)\boldsymbol{\phi}(k)\)</span>
+gives the affine local weight dynamics</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{w}(k+1)=
+\underbrace{\left[\boldsymbol{I}-\mu_w
+\boldsymbol{\phi}(k)\boldsymbol{\phi}^{\mathsf T}(k)\right]}_{\boldsymbol{A}_w(k)}
+\boldsymbol{w}(k)
++\mu_w\boldsymbol{\phi}(k)y(k).\]</div>
+<p>The software monitors <span class="math notranslate nohighlight">\(\rho(\boldsymbol{A}_w(k))\)</span> and, where available,
+its induced norm. For a fixed regressor, a sufficient scalar step-size condition
+for contraction in the excited direction is</p>
+<div class="math notranslate nohighlight">
+\[0&lt;\mu_w&lt;\frac{2}{\left\|\boldsymbol{\phi}(k)\right\|_2^2}.\]</div>
+<p>A single constant <span class="math notranslate nohighlight">\(\mu_w\)</span> must accommodate the largest feature energy in
+the data. This is particularly restrictive for QNU regressors because their
+energy grows approximately with the fourth power of the original signal scale.</p>
+</section>
+<section id="normalized-gradient-descent">
+<h2>Normalized gradient descent<a class="headerlink" href="#normalized-gradient-descent" title="Link to this heading">¶</a></h2>
+<p>NGD removes most of the direct dependence on feature-vector magnitude:</p>
+<div class="math notranslate nohighlight">
+\[\eta_w(k)=
+\frac{\mu_w}{\varepsilon+\left\|\boldsymbol{\phi}(k)\right\|_2^2},\]</div>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{w}(k+1)=\boldsymbol{w}(k)
++\eta_w(k)e(k)\boldsymbol{\phi}(k).\]</div>
+<p>Its local update matrix is</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{A}_w(k)=\boldsymbol{I}-\eta_w(k)
+\boldsymbol{\phi}(k)\boldsymbol{\phi}^{\mathsf T}(k).\]</div>
+<p>The regularizing denominator <span class="math notranslate nohighlight">\(\varepsilon&gt;0\)</span> prevents division by zero
+and limits the step when the regressor is very small. NGD improves scale
+robustness but does not create persistent excitation, remove model bias or
+prevent instability caused by recursive use of a poor plant model.</p>
+<section id="epochs-in-gd-and-ngd">
+<h3>Epochs in GD and NGD<a class="headerlink" href="#epochs-in-gd-and-ngd" title="Link to this heading">¶</a></h3>
+<p>One epoch traverses the complete valid training record once. At the end of an
+epoch the learned weights are retained and the data are replayed. More epochs
+can reduce training error, but the samples are not new information. Excessive
+epochs may overfit a finite trajectory or drive the recursive model into a
+region that has good one-step error but poor free-run behavior.</p>
+</section>
+</section>
+<section id="levenberg-marquardt">
+<h2>Levenberg–Marquardt<a class="headerlink" href="#levenberg-marquardt" title="Link to this heading">¶</a></h2>
+<p>For the residual vector</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{r}(\boldsymbol{w})=
+\boldsymbol{y}-\boldsymbol{\Phi}\boldsymbol{w},\]</div>
+<p>its Jacobian is</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{J}=\frac{\partial\boldsymbol{r}}
+{\partial\boldsymbol{w}^{\mathsf T}}=-\boldsymbol{\Phi}.\]</div>
+<p>The L-M increment solves</p>
+<div class="math notranslate nohighlight">
+\[\left(\boldsymbol{J}^{\mathsf T}\boldsymbol{J}
++\lambda_{LM}\boldsymbol{I}\right)\Delta\boldsymbol{w}
+=-\boldsymbol{J}^{\mathsf T}\boldsymbol{r}.\]</div>
+<p>Hence, for the linear-in-weights HONU,</p>
+<div class="math notranslate nohighlight">
+\[\Delta\boldsymbol{w}=
+\left(\boldsymbol{\Phi}^{\mathsf T}\boldsymbol{\Phi}
++\lambda_{LM}\boldsymbol{I}\right)^{-1}
+\boldsymbol{\Phi}^{\mathsf T}
+\left(\boldsymbol{y}-\boldsymbol{\Phi}\boldsymbol{w}\right).\]</div>
+<p>As <span class="math notranslate nohighlight">\(\lambda_{LM}\rightarrow 0\)</span>, the step approaches Gauss–Newton. For
+large <span class="math notranslate nohighlight">\(\lambda_{LM}\)</span>, it becomes a small gradient-like step. The damping
+is adjusted according to whether the trial step reduces the residual cost.
+Unlike Ridge, L-M damping is an iteration-control parameter and does not
+necessarily define the final regularized objective.</p>
+<p>For a linear-in-weights static fit, direct Ridge is normally faster and clearer.
+L-M is useful when a common damped least-squares framework, iteration traces or
+sliding-window refits are required.</p>
+</section>
+<section id="plant-learning-diagnostics">
+<h2>Plant-learning diagnostics<a class="headerlink" href="#plant-learning-diagnostics" title="Link to this heading">¶</a></h2>
+<p>Plant identification reports should be interpreted jointly:</p>
+<div class="math notranslate nohighlight">
+\[\operatorname{RMSE}=
+\sqrt{\frac{1}{N}\sum_{k=1}^{N}e^2(k)}\]</div>
+<p>measures one-step fit; <span class="math notranslate nohighlight">\(\rho(\boldsymbol{A}_w(k))\)</span> characterizes the local
+learning update; and <span class="math notranslate nohighlight">\(\rho(\boldsymbol{A}_y(k))\)</span> characterizes the frozen
+recursive output model. These are different objects. A stable weight update
+does not imply a stable recursive plant model, and a stable plant model does not
+prove stability of the complete adaptive closed loop.</p>
+</section>
+<section id="controller-learning-differs-from-plant-identification">
+<h2>Controller learning differs from plant identification<a class="headerlink" href="#controller-learning-differs-from-plant-identification" title="Link to this heading">¶</a></h2>
+<p>Plant learning minimizes prediction error with respect to
+<span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span>. MRAC controller learning instead minimizes the
+closed-loop tracking error with respect to controller weights
+<span class="math notranslate nohighlight">\(\boldsymbol{v}\)</span> and the scalar gain <span class="math notranslate nohighlight">\(r_0\)</span>. Its gradient must pass
+through the controller, the delayed plant model and the recursive closed-loop
+history. It is therefore a recurrent sensitivity calculation rather than a
+one-step supervised HONU fit. The complete derivation is given in
+<a class="reference internal" href="mrac_architecture.html"><span class="doc">HONU MRAC architecture and recurrent controller learning</span></a>.</p>
+</section>
+<section id="use-in-mpc">
+<h2>Use in MPC<a class="headerlink" href="#use-in-mpc" title="Link to this heading">¶</a></h2>
+<p>MPC contains two distinct numerical learning/optimization levels. First, the
+HONU prediction model is identified by Ridge or L-M, either once or repeatedly
+from a sliding window. Second, at every control sample, the future input
+sequence is optimized by damped Gauss–Newton using the recursively propagated
+HONU prediction Jacobian. Controller-sequence optimization is not plant-weight
+learning; the distinction is developed in <a class="reference internal" href="honu_mpc.html"><span class="doc">HONU MPC</span></a>.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">SISO Adaptive Control</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Software modes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../software_overview.html">Software overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../measured_data.html">Measured-data input and processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scope_and_limitations.html">Purpose, scope and limitations</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Models and control</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../models/index.html">Plant models</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">HONU, learning methods, and GUI parameters</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="honu_models.html">Plant HONU: LNU and QNU</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">HONU learning: Ridge, GD, NGD, and L-M</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mrac_architecture.html">HONU MRAC architecture and recurrent controller learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_parameters.html">HONU MRAC menu parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="honu_mpc.html">HONU MPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mlp_mpc.html">MLP in MPC</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">HONU, learning methods, and GUI parameters</a><ul>
+      <li>Previous: <a href="honu_models.html" title="previous chapter">Plant HONU: LNU and QNU</a></li>
+      <li>Next: <a href="mrac_architecture.html" title="next chapter">HONU MRAC architecture and recurrent controller learning</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/honu/learning_methods.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Bioprocess: dissolved oxygen bioreactor &#8212; SISO Adaptive Control  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=12dfc556" />
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Bioprocess: Monod chemostat biomass" href="chemostat_monod_biomass.html" />
+    <link rel="prev" title="Biomedical: nonlinear drug PK-PD" href="drug_infusion_pkpd.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="bioprocess-dissolved-oxygen-bioreactor">
+<h1>Bioprocess: dissolved oxygen bioreactor<a class="headerlink" href="#bioprocess-dissolved-oxygen-bioreactor" title="Link to this heading">¶</a></h1>
+<p>Python model: <code class="docutils literal notranslate"><span class="pre">plant_models.bioreactor_dissolved_oxygen</span></code></p>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Link to this heading">¶</a></h2>
+<p>Stirred-tank bioreactor: dissolved oxygen control by agitation command.</p>
+<p>state vector <span class="math notranslate nohighlight">\(\mathbf{x}\)</span> = [C, X, N, OUR, 0, 0, 0]. Controlled output y2 = C-C0.
+The command u is a dimensionless deviation; N_cmd=N0+N_gain*tanh(u).</p>
+</section>
+<section id="controlled-input-and-output">
+<h2>Controlled input and output<a class="headerlink" href="#controlled-input-and-output" title="Link to this heading">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 14.0%" />
+<col style="width: 22.0%" />
+<col style="width: 28.0%" />
+<col style="width: 36.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Role</p></th>
+<th class="head"><p>Mathematical notation</p></th>
+<th class="head"><p>Python/interface name</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Input</p></td>
+<td><p><span class="math notranslate nohighlight">\(u(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">u</span></code></p></td>
+<td><p>Agitation command</p></td>
+</tr>
+<tr class="row-odd"><td><p>Output</p></td>
+<td><p><span class="math notranslate nohighlight">\(\Delta C_{\mathrm{O_2}}\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">y</span></code> / <code class="docutils literal notranslate"><span class="pre">C_O2_deviation</span></code></p></td>
+<td><p>Dissolved oxygen deviation</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="model-equations">
+<h2>Model equations<a class="headerlink" href="#model-equations" title="Link to this heading">¶</a></h2>
+<section id="state-variables">
+<h3>State variables<a class="headerlink" href="#state-variables" title="Link to this heading">¶</a></h3>
+<p>The physical state vector used by the model is</p>
+<div class="math notranslate nohighlight">
+\[\mathbf{x}(t)=[C(t),\,X(t),\,N(t),\,OUR(t)]^\mathsf{T}.\]</div>
+</section>
+<section id="static-and-auxiliary-relations">
+<h3>Static and auxiliary relations<a class="headerlink" href="#static-and-auxiliary-relations" title="Link to this heading">¶</a></h3>
+<p>The auxiliary quantities are</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+N_{\mathrm{cmd}}(t)&amp;=N_0+k_N\tanh(u(t)) \\
+k_La(t)&amp;=k_{La,0}+k_{La,1}N(t)+k_{La,2}N(t)^2 \\
+\mu(C(t))&amp;=\mu_{\max}\dfrac{C(t)}{K_{O_2}+C(t)} \\
+OUR_{\mathrm{ss}}(t)&amp;=q_{O_2}X(t)\dfrac{C(t)}{K_{O_2}+C(t)}
+\end{aligned}\end{split}\]</div>
+</section>
+<section id="state-equations">
+<h3>State equations<a class="headerlink" href="#state-equations" title="Link to this heading">¶</a></h3>
+<p>The implemented continuous-time dynamics are</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+\dot{C}(t)&amp;=k_La(t)(C(t)^\ast-C(t))-OUR(t) \\
+\dot{X}(t)&amp;=\left(\mu(C(t))-k_d\right)X(t) \\
+\dot{N}(t)&amp;=\dfrac{N_{\mathrm{cmd}}(t)-N(t)}{\tau_N} \\
+\dot{OUR}(t)&amp;=\dfrac{OUR_{\mathrm{ss}}(t)-OUR(t)}{\tau_{OUR}}
+\end{aligned}\end{split}\]</div>
+</section>
+<section id="output-equation">
+<h3>Output equation<a class="headerlink" href="#output-equation" title="Link to this heading">¶</a></h3>
+<p>The controlled input and output used by the identification and control algorithms are defined explicitly as</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+u(t)\in\mathbb{R}\quad\text{(agitation command)},\\
+y(t)=\Delta C_{\mathrm{O_2}}(t)=C(t)-C_0.
+\end{aligned}\end{split}\]</div>
+</section>
+</section>
+<section id="parameter-implementation">
+<h2>Parameter implementation<a class="headerlink" href="#parameter-implementation" title="Link to this heading">¶</a></h2>
+<p>The editable default parameters are defined in <code class="docutils literal notranslate"><span class="pre">apps/simulated/plant_models/bioreactor_dissolved_oxygen.py</span></code>. They are fields of <code class="docutils literal notranslate"><span class="pre">PlantParams</span></code> near the beginning of that file. The function <code class="docutils literal notranslate"><span class="pre">default_params()</span></code> returns the default parameter object used by the GUI and simulation. The parameter table below maps the Python field names to the mathematical symbols used in the equations.</p>
+</section>
+<section id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Link to this heading">¶</a></h2>
+<p>The mathematical notation is used in the equations above. The Python name is the exact field in <code class="docutils literal notranslate"><span class="pre">PlantParams</span></code>; the last column explains how the parameter enters this specific model.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 25.0%" />
+<col style="width: 18.0%" />
+<col style="width: 37.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Mathematical notation</p></th>
+<th class="head"><p>Python name</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(C^{\ast}\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">C_star</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1.0</span></code></p></td>
+<td><p>Saturation dissolved-oxygen concentration.</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(C_0\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">C0</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.55</span></code></p></td>
+<td><p>Initial dissolved-oxygen concentration and operating-point value used in the output deviation <span class="math notranslate nohighlight">\(y=C-C_0\)</span>.</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(X_0\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">X0</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1.0</span></code></p></td>
+<td><p>Initial biomass concentration.</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(N_0\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">N0</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.55</span></code></p></td>
+<td><p>Initial agitation-speed state about which the command law is defined.</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(k_N\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">N_gain</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.35</span></code></p></td>
+<td><p>Gain from normalized input <span class="math notranslate nohighlight">\(u(t)\)</span> to the commanded agitation speed <span class="math notranslate nohighlight">\(N_{\mathrm{cmd}}(t)\)</span>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\tau_N\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tau_N</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.3</span></code></p></td>
+<td><p>First-order time constant of the agitation actuator.</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(k_{La,0}\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">kla0</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.12</span></code></p></td>
+<td><p>Baseline volumetric oxygen-transfer coefficient.</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(k_{La,1}\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">kla1</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.55</span></code></p></td>
+<td><p>Linear control-dependent contribution to the oxygen-transfer coefficient.</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(k_{La,2}\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">kla2</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.18</span></code></p></td>
+<td><p>Quadratic control-dependent contribution to the oxygen-transfer coefficient.</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(q_{O_2}\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">qO2</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.24</span></code></p></td>
+<td><p>Specific cellular oxygen-consumption coefficient.</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\mu_{\max}\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mu_max</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.01</span></code></p></td>
+<td><p>Maximum specific biological growth rate.</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(K_{O_2}\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">K_O2</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.2</span></code></p></td>
+<td><p>Dissolved-oxygen half-saturation constant for growth.</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(k_d\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">k_decay</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.004</span></code></p></td>
+<td><p>First-order biomass decay rate.</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\tau_{OUR}\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tau_our</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.7</span></code></p></td>
+<td><p>First-order time constant of the reported oxygen-uptake-rate state.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="variables">
+<h2>Variables<a class="headerlink" href="#variables" title="Link to this heading">¶</a></h2>
+<p>The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. The table contains ODE states and algebraic signals reported by <code class="docutils literal notranslate"><span class="pre">algebraic_outputs()</span></code>. A reported signal need not be an independent state, but it must be explicitly defined by the equations, an auxiliary relation, or the implementation reference below.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22.0%" />
+<col style="width: 28.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Mathematical notation</p></th>
+<th class="head"><p>Python name</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(u(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">u</span></code></p></td>
+<td><p>Agitation command</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(C-C_0(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">y</span></code> / <code class="docutils literal notranslate"><span class="pre">C_O2_deviation</span></code></p></td>
+<td><p>Dissolved oxygen deviation</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(C(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">C_O2</span></code></p></td>
+<td><p>Dissolved oxygen</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(X(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">biomass</span></code></p></td>
+<td><p>Biomass concentration</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(N(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">agitation</span></code></p></td>
+<td><p>Agitation speed</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(k_La(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">kla</span></code></p></td>
+<td><p>Oxygen transfer coefficient</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(OUR(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">OUR</span></code></p></td>
+<td><p>Oxygen uptake rate</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(C(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">C</span></code></p></td>
+<td><p>Dissolved-oxygen concentration state used in the oxygen-transfer and Monod terms.</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(X(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">X</span></code></p></td>
+<td><p>Biomass concentration.</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(N(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">N</span></code></p></td>
+<td><p>Actual agitation-speed state after the first-order actuator dynamics.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="additional-symbols">
+<h2>Additional symbols<a class="headerlink" href="#additional-symbols" title="Link to this heading">¶</a></h2>
+<p>Symbols used by the model equations that are not already listed in the state or parameter tables.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 24.0%" />
+<col style="width: 28.0%" />
+<col style="width: 48.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Mathematical notation</p></th>
+<th class="head"><p>Python/interface name</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\mu(C)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mu(C)</span></code></p></td>
+<td><p>Specific oxygen-consumption or growth-rate function evaluated at dissolved oxygen concentration.</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(OUR_{\mathrm{ss}}(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">OUR_mathrmss</span></code></p></td>
+<td><p>Steady-state oxygen uptake rate used to define the deviation output.</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(y(t)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">y</span></code></p></td>
+<td><p>Dissolved-oxygen deviation from its steady-state value.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="model-provenance-and-references">
+<h2>Model provenance and references<a class="headerlink" href="#model-provenance-and-references" title="Link to this heading">¶</a></h2>
+<p>This is a reduced-order educational benchmark assembled from standard physical or domain-modeling relations. It is not a parameter-identical reproduction of the cited source. The reference below documents the principal model structure or constitutive relations used.</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://doi.org/10.1016/j.biotechadv.2009.10.006">F. Garcia-Ochoa and E. Gomez, Bioreactor scale-up and oxygen transfer rate in microbial processes.</a></p></li>
+</ul>
+</section>
+<section id="implementation-reference">
+<h2>Implementation reference<a class="headerlink" href="#implementation-reference" title="Link to this heading">¶</a></h2>
+<p>Initial state:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">initial_state</span><span class="p">(</span><span class="n">par</span><span class="p">):</span>
+    <span class="n">our0</span><span class="o">=</span><span class="n">par</span><span class="o">.</span><span class="n">qO2</span><span class="o">*</span><span class="n">par</span><span class="o">.</span><span class="n">X0</span><span class="o">*</span><span class="n">par</span><span class="o">.</span><span class="n">C0</span><span class="o">/</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">K_O2</span><span class="o">+</span><span class="n">par</span><span class="o">.</span><span class="n">C0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">par</span><span class="o">.</span><span class="n">C0</span><span class="p">,</span><span class="n">par</span><span class="o">.</span><span class="n">X0</span><span class="p">,</span><span class="n">par</span><span class="o">.</span><span class="n">N0</span><span class="p">,</span><span class="n">our0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="nb">float</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Algebraic outputs:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">algebraic_outputs</span><span class="p">(</span><span class="n">chi</span><span class="p">,</span><span class="n">par</span><span class="p">):</span>
+    <span class="n">C</span><span class="p">,</span><span class="n">X</span><span class="p">,</span><span class="n">N</span><span class="p">,</span><span class="n">OUR</span><span class="o">=</span><span class="n">chi</span><span class="p">[:</span><span class="mi">4</span><span class="p">];</span> <span class="n">kla</span><span class="o">=</span><span class="n">par</span><span class="o">.</span><span class="n">kla0</span><span class="o">+</span><span class="n">par</span><span class="o">.</span><span class="n">kla1</span><span class="o">*</span><span class="n">N</span><span class="o">+</span><span class="n">par</span><span class="o">.</span><span class="n">kla2</span><span class="o">*</span><span class="n">N</span><span class="o">*</span><span class="n">N</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;C_O2&quot;</span><span class="p">:</span><span class="n">C</span><span class="p">,</span><span class="s2">&quot;C_O2_deviation&quot;</span><span class="p">:</span><span class="n">C</span><span class="o">-</span><span class="n">par</span><span class="o">.</span><span class="n">C0</span><span class="p">,</span><span class="s2">&quot;biomass&quot;</span><span class="p">:</span><span class="n">X</span><span class="p">,</span><span class="s2">&quot;agitation&quot;</span><span class="p">:</span><span class="n">N</span><span class="p">,</span><span class="s2">&quot;kla&quot;</span><span class="p">:</span><span class="n">kla</span><span class="p">,</span><span class="s2">&quot;OUR&quot;</span><span class="p">:</span><span class="n">OUR</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>ODE right-hand side:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">rhs</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">chi</span><span class="p">,</span><span class="n">u</span><span class="p">,</span><span class="n">par</span><span class="p">):</span>
+    <span class="n">C</span><span class="p">,</span><span class="n">X</span><span class="p">,</span><span class="n">N</span><span class="p">,</span><span class="n">OUR</span><span class="o">=</span><span class="n">chi</span><span class="p">[:</span><span class="mi">4</span><span class="p">];</span> <span class="n">Ncmd</span><span class="o">=</span><span class="n">par</span><span class="o">.</span><span class="n">N0</span><span class="o">+</span><span class="n">par</span><span class="o">.</span><span class="n">N_gain</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+    <span class="n">kla</span><span class="o">=</span><span class="n">par</span><span class="o">.</span><span class="n">kla0</span><span class="o">+</span><span class="n">par</span><span class="o">.</span><span class="n">kla1</span><span class="o">*</span><span class="n">N</span><span class="o">+</span><span class="n">par</span><span class="o">.</span><span class="n">kla2</span><span class="o">*</span><span class="n">N</span><span class="o">*</span><span class="n">N</span>
+    <span class="n">mu</span><span class="o">=</span><span class="n">par</span><span class="o">.</span><span class="n">mu_max</span><span class="o">*</span><span class="n">C</span><span class="o">/</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">K_O2</span><span class="o">+</span><span class="n">C</span><span class="p">)</span>
+    <span class="n">OURss</span><span class="o">=</span><span class="n">par</span><span class="o">.</span><span class="n">qO2</span><span class="o">*</span><span class="n">X</span><span class="o">*</span><span class="n">C</span><span class="o">/</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">K_O2</span><span class="o">+</span><span class="n">C</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">kla</span><span class="o">*</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">C_star</span><span class="o">-</span><span class="n">C</span><span class="p">)</span><span class="o">-</span><span class="n">OUR</span><span class="p">,</span> <span class="p">(</span><span class="n">mu</span><span class="o">-</span><span class="n">par</span><span class="o">.</span><span class="n">k_decay</span><span class="p">)</span><span class="o">*</span><span class="n">X</span><span class="p">,</span>
+                     <span class="p">(</span><span class="n">Ncmd</span><span class="o">-</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="n">par</span><span class="o">.</span><span class="n">tau_N</span><span class="p">,(</span><span class="n">OURss</span><span class="o">-</span><span class="n">OUR</span><span class="p">)</span><span class="o">/</span><span class="n">par</span><span class="o">.</span><span class="n">tau_our</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="nb">float</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">SISO Adaptive Control</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Software modes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../software_overview.html">Software overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../measured_data.html">Measured-data input and processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scope_and_limitations.html">Purpose, scope and limitations</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Models and control</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Plant models</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#mathematical-notation">Mathematical notation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../honu/index.html">HONU, learning methods, and GUI parameters</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Plant models</a><ul>
+      <li>Previous: <a href="drug_infusion_pkpd.html" title="previous chapter">Biomedical: nonlinear drug PK-PD</a></li>
+      <li>Next: <a href="chemostat_monod_biomass.html" title="next chapter">Bioprocess: Monod chemostat biomass</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/models/bioreactor_dissolved_oxygen.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.idea/
+.vscode/
+documentation/_build/
+apps/*/RESULTS/
+apps/*/results/
+apps/*/*.npz
+apps/*/*.npy
+apps/*/data_uy.txt
+apps/*/normalization_stats.json

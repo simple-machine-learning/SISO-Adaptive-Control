@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>HONU MPC &#8212; SISO Adaptive Control  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=12dfc556" />
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="MLP in MPC" href="mlp_mpc.html" />
+    <link rel="prev" title="HONU MRAC menu parameters" href="gui_parameters.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="honu-mpc">
+<h1>HONU MPC<a class="headerlink" href="#honu-mpc" title="Link to this heading">¶</a></h1>
+<section id="purpose-and-computational-structure">
+<h2>Purpose and computational structure<a class="headerlink" href="#purpose-and-computational-structure" title="Link to this heading">¶</a></h2>
+<p>The <strong>HONU MPC</strong> page combines a physical continuous-time ODE plant, a
+sampled-data HONU prediction model and a receding-horizon controller.  The
+terms <em>plant learning</em> and <em>learning</em> in this page refer to identification of
+the HONU prediction model.  They do <strong>not</strong> denote learning of a separate
+neural controller.</p>
+<p>For each MPC sample, the implemented information flow is</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{x}_k
+\longrightarrow
+\boldsymbol{z}_k = \boldsymbol{P}^{\mathsf T}\boldsymbol{x}_k
+\longrightarrow
+\boldsymbol{\varphi}_k
+\longrightarrow
+\hat y_{k+1}
+\longrightarrow
+\boldsymbol{u}^{\star}_k .\]</div>
+<p>Here, <span class="math notranslate nohighlight">\(\boldsymbol{x}_k\)</span> is the delayed plant regressor,
+<span class="math notranslate nohighlight">\(\boldsymbol{P}\)</span> is a fixed PCA projection, <span class="math notranslate nohighlight">\(\boldsymbol{z}_k\)</span> is
+the compressed regressor, <span class="math notranslate nohighlight">\(\boldsymbol{\varphi}_k\)</span> is the LNU or QNU
+feature vector, and <span class="math notranslate nohighlight">\(\boldsymbol{u}^{\star}_k\)</span> is the optimized future
+input sequence.  Only its first value is applied to the physical plant.</p>
+<p>The prediction model is</p>
+<div class="math notranslate nohighlight">
+\[\hat y_{k+1} = \boldsymbol{c}^{\mathsf T}\boldsymbol{\varphi}_k,\]</div>
+<p>where the weight vector <span class="math notranslate nohighlight">\(\boldsymbol{c}\)</span> is estimated by either Ridge
+regression or Levenberg–Marquardt according to <code class="docutils literal notranslate"><span class="pre">plant_learning</span></code>.</p>
+</section>
+<section id="application-to-stable-or-pre-stabilized-plants">
+<h2>Application to stable or pre-stabilized plants<a class="headerlink" href="#application-to-stable-or-pre-stabilized-plants" title="Link to this heading">¶</a></h2>
+<p>HONU MPC relies on predictions from a model identified from bounded
+input-output data. It is therefore intended primarily for open-loop stable
+plants or for plants already stabilized by an independent lower-level
+controller. For an unstable physical plant, the stabilizing mechanism must be
+active during identification and must provide a safe fallback during
+validation and operation.</p>
+<p>Within that bounded regime, MPC can improve tracking, disturbance rejection,
+control smoothness and control effort. The soft penalties implemented in the
+current software are not a substitute for a stabilizing terminal controller,
+hard constraints, an invariant set or an independent safety layer. The
+implementation does not provide a general stabilization guarantee for
+arbitrary unstable or strongly nonlinear plants.</p>
+</section>
+<section id="regressor-and-delays">
+<h2>Regressor and delays<a class="headerlink" href="#regressor-and-delays" title="Link to this heading">¶</a></h2>
+<p>Before PCA, the base regressor is</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{x}_k =
+\begin{bmatrix}
+y_k &amp; y_{k-1} &amp; \cdots &amp; y_{k-n_y+1} &amp;
+u_{k-n_{\tau_u}} &amp; u_{k-n_{\tau_u}-1} &amp; \cdots &amp;
+u_{k-n_{\tau_u}-n_u+1}
+\end{bmatrix}^{\mathsf T},\]</div>
+<p>with</p>
+<div class="math notranslate nohighlight">
+\[n_{\tau_u}=\operatorname{round}\!\left(\frac{\mathtt{tau\_u\_delay}}
+{\mathtt{dt\_control}}\right).\]</div>
+<p>Thus, <code class="docutils literal notranslate"><span class="pre">n_y</span></code> and <code class="docutils literal notranslate"><span class="pre">n_u</span></code> specify numbers of stored samples, while
+<code class="docutils literal notranslate"><span class="pre">tau_u_delay</span></code> specifies a pure time delay before the input-memory block.
+The reference delay is implemented separately as</p>
+<div class="math notranslate nohighlight">
+\[n_{\tau_d}=\operatorname{round}\!\left(\frac{\mathtt{tau\_d\_delay}}
+{\mathtt{dt\_control}}\right),
+\qquad d_k^{\mathrm{del}}=d_{k-n_{\tau_d}}.\]</div>
+</section>
+<section id="pca-reduction">
+<h2>PCA reduction<a class="headerlink" href="#pca-reduction" title="Link to this heading">¶</a></h2>
+<p>PCA is applied to the base regressor before adding the constant feature and
+before constructing the QNU basis.  The implementation first centres the
+initial regressor matrix only to determine its SVD directions.  Prediction
+and fitting then use the uncentred projection</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{z}_k=\boldsymbol{P}^{\mathsf T}\boldsymbol{x}_k.\]</div>
+<p>The projection matrix <code class="docutils literal notranslate"><span class="pre">pca_projection</span></code> is computed once from the initial
+identification data and remains frozen during both frozen-HONU and
+sliding-retraining MPC.  Consequently, sliding retraining updates
+<span class="math notranslate nohighlight">\(\boldsymbol{c}\)</span>, not the PCA coordinate system.</p>
+<p><code class="docutils literal notranslate"><span class="pre">pca_selection_mode</span> <span class="pre">=</span> <span class="pre">&quot;rank&quot;</span></code> retains every numerically independent
+component.  <code class="docutils literal notranslate"><span class="pre">pca_selection_mode</span> <span class="pre">=</span> <span class="pre">&quot;variability&quot;</span></code> retains the smallest
+number of components whose cumulative squared singular values reach
+<code class="docutils literal notranslate"><span class="pre">pca_retained_variability</span></code>.</p>
+<p>For <span class="math notranslate nohighlight">\(r\)</span> selected PCA components, the LNU feature count is</p>
+<div class="math notranslate nohighlight">
+\[n_{\varphi,\mathrm{LNU}}=1+r,\]</div>
+<p>and the QNU feature count is</p>
+<div class="math notranslate nohighlight">
+\[n_{\varphi,\mathrm{QNU}}=\frac{(1+r)(2+r)}{2}.\]</div>
+<p>Increasing the retained PCA dimension preserves more regressor information
+but increases identification and MPC cost.  The increase is particularly
+important for QNU because its feature count grows quadratically.  Reducing the
+dimension improves conditioning and speed but can remove dynamically useful
+information and increase prediction bias.</p>
+</section>
+<section id="honu-feature-construction">
+<h2>HONU feature construction<a class="headerlink" href="#honu-feature-construction" title="Link to this heading">¶</a></h2>
+<p>After PCA, the constant component is added:</p>
+<div class="math notranslate nohighlight">
+\[\tilde{\boldsymbol{z}}_k =
+\begin{bmatrix}1 &amp; \boldsymbol{z}_k^{\mathsf T}\end{bmatrix}^{\mathsf T}.\]</div>
+<p>For LNU,</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\varphi}_k=\tilde{\boldsymbol{z}}_k.\]</div>
+<p>For QNU, <code class="docutils literal notranslate"><span class="pre">qnu_features</span></code> constructs all upper-triangular products
+<span class="math notranslate nohighlight">\(\tilde z_{k,i}\tilde z_{k,j}\)</span> for <span class="math notranslate nohighlight">\(i\leq j\)</span>.  The order is
+therefore <strong>PCA first, constant feature second, QNU expansion third</strong>.</p>
+</section>
+<section id="identification-by-ridge-or-l-m">
+<h2>Identification by Ridge or L-M<a class="headerlink" href="#identification-by-ridge-or-l-m" title="Link to this heading">¶</a></h2>
+<p>The GUI selector <strong>learning</strong> sets <code class="docutils literal notranslate"><span class="pre">plant_learning</span></code>.</p>
+<section id="ridge">
+<h3>Ridge<a class="headerlink" href="#ridge" title="Link to this heading">¶</a></h3>
+<p>For <code class="docutils literal notranslate"><span class="pre">plant_learning</span> <span class="pre">=</span> <span class="pre">&quot;ridge&quot;</span></code>, the prediction weights are obtained in one
+batch solve:</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{c}=
+\left(\boldsymbol{\Phi}^{\mathsf T}\boldsymbol{\Phi}
++\lambda\boldsymbol{I}_0\right)^{-1}
+\boldsymbol{\Phi}^{\mathsf T}\boldsymbol{y},\]</div>
+<p>where the constant-feature weight is not regularized.  <code class="docutils literal notranslate"><span class="pre">lambda</span></code> is the
+Ridge regularization coefficient.</p>
+<p>Increasing <code class="docutils literal notranslate"><span class="pre">lambda</span></code> usually reduces weight magnitude and sensitivity to
+collinearity, but increases bias and may underfit.  Decreasing it improves
+training fit but can amplify noise and numerical ill-conditioning.</p>
+</section>
+<section id="levenberg-marquardt">
+<h3>Levenberg–Marquardt<a class="headerlink" href="#levenberg-marquardt" title="Link to this heading">¶</a></h3>
+<p>For <code class="docutils literal notranslate"><span class="pre">plant_learning</span> <span class="pre">=</span> <span class="pre">&quot;lm&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">solve_linear_lm</span></code> performs
+<code class="docutils literal notranslate"><span class="pre">lm_epochs</span></code> damped iterations.  In this mode, <code class="docutils literal notranslate"><span class="pre">lambda</span></code> is the initial L-M
+damping, not a Ridge penalty.</p>
+<p>Increasing <code class="docutils literal notranslate"><span class="pre">lm_epochs</span></code> permits more damping adaptation and convergence but
+increases computation, especially in sliding retraining.  Increasing the
+initial <code class="docutils literal notranslate"><span class="pre">lambda</span></code> makes early updates more conservative and gradient-like;
+decreasing it makes them more Gauss–Newton-like and potentially faster, but
+less robust when the feature matrix is ill-conditioned.</p>
+<p>Because the HONU model is linear in <span class="math notranslate nohighlight">\(\boldsymbol{c}\)</span>, Ridge normally
+provides the direct and computationally cheaper fit.  L-M is retained as an
+iterative damped alternative and exposes its weight, RMSE, damping and local
+update-map diagnostics.</p>
+</section>
+</section>
+<section id="mpc-objective">
+<h2>MPC objective<a class="headerlink" href="#mpc-objective" title="Link to this heading">¶</a></h2>
+<p>At time <span class="math notranslate nohighlight">\(k\)</span>, the optimizer computes the candidate sequence</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{u}_k=
+\begin{bmatrix}u_{k|k}&amp;\cdots&amp;u_{k+N_p-1|k}\end{bmatrix}^{\mathsf T},\]</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">horizon</span></code> is <span class="math notranslate nohighlight">\(N_p\)</span>.  The implemented objective is</p>
+<div class="math notranslate nohighlight">
+\[J =
+Q\sum_{i=1}^{N_p}(\hat y_{k+i|k}-y_{\mathrm{ref},k+i})^2
++R_{\Delta u}\sum_{i=0}^{N_p-1}(\Delta u_{k+i|k})^2
++R_{\Delta^2u}\sum_{i=0}^{N_p-1}(\Delta^2u_{k+i|k})^2
++R_u\sum_{i=0}^{N_p-1}u_{k+i|k}^2.\]</div>
+<p>The Python coefficients are <code class="docutils literal notranslate"><span class="pre">q_track</span></code>, <code class="docutils literal notranslate"><span class="pre">r_du</span></code>, <code class="docutils literal notranslate"><span class="pre">r_ddu</span></code> and <code class="docutils literal notranslate"><span class="pre">r_u</span></code>.
+All are clipped internally to non-negative values.</p>
+<p>The future output sequence and its exact local Jacobian with respect to the
+candidate input sequence are propagated recursively through the HONU model.
+The optimizer then performs at most <code class="docutils literal notranslate"><span class="pre">opt_iter</span></code> damped Gauss–Newton steps.
+It solves an augmented least-squares problem directly, uses a trust radius and
+accepts only cost-reducing steps.  The previous optimum is shifted to form a
+warm start.  Only <span class="math notranslate nohighlight">\(u_{k|k}^{\star}\)</span> is applied; the procedure repeats at
+the next sample.</p>
+<p>The MPC signal is not clipped by <code class="docutils literal notranslate"><span class="pre">u_min</span></code> and <code class="docutils literal notranslate"><span class="pre">u_max</span></code>.  These values define
+the excitation range used for physical-plant simulation and initial
+identification.  They are not actuator constraints.  Regularization by
+<code class="docutils literal notranslate"><span class="pre">r_u</span></code>, <code class="docutils literal notranslate"><span class="pre">r_du</span></code> and <code class="docutils literal notranslate"><span class="pre">r_ddu</span></code> can discourage large or rapidly changing
+inputs, but it cannot guarantee an admissible input range.  The current MPC
+implementation also has no general hard state, output or input-rate
+constraints and no anti-windup mechanism.  See <a class="reference internal" href="../scope_and_limitations.html"><span class="doc">Purpose, scope and limitations</span></a>.</p>
+</section>
+<section id="what-is-learned-and-what-is-optimized">
+<h2>What is learned and what is optimized<a class="headerlink" href="#what-is-learned-and-what-is-optimized" title="Link to this heading">¶</a></h2>
+<p>HONU MPC contains two mathematically different adaptation problems.
+Identification changes the prediction-model weights
+<span class="math notranslate nohighlight">\(\boldsymbol{c}\)</span>. Receding-horizon optimization changes the temporary
+candidate control sequence <span class="math notranslate nohighlight">\(\boldsymbol{u}_k\)</span>; it does not create a
+separate neural-controller weight vector.</p>
+<p>For a frozen model,</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{c}(k+1)=\boldsymbol{c}(k),\]</div>
+<p>and only <span class="math notranslate nohighlight">\(\boldsymbol{u}_k\)</span> is reoptimized at every sample. In sliding
+mode, a new model estimate is computed from the latest data window,</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{c}(k)=
+\arg\min_{\boldsymbol{c}}
+\left\|\boldsymbol{y}_w(k)-
+\boldsymbol{\Phi}_w(k)\boldsymbol{c}\right\|_2^2
++\lambda\left\|\boldsymbol{L}\boldsymbol{c}\right\|_2^2,\]</div>
+<p>or by the equivalent damped L-M iterations. The refitted model is then held
+fixed during the inner optimization of the current future input sequence.
+There is therefore no simultaneous gradient update of model weights inside one
+Gauss–Newton control-sequence step.</p>
+</section>
+<section id="recursive-prediction">
+<h2>Recursive prediction<a class="headerlink" href="#recursive-prediction" title="Link to this heading">¶</a></h2>
+<p>For a candidate sequence, the predictor is rolled forward recursively. The
+first prediction uses measured output and input histories. Later predictions
+replace unavailable future outputs by earlier HONU predictions and unavailable
+future inputs by entries of the candidate sequence:</p>
+<div class="math notranslate nohighlight">
+\[\hat y_{k+i|k}=
+\boldsymbol{c}^{\mathsf T}
+\boldsymbol{\varphi}
+\left(\boldsymbol{x}_{k+i-1|k}\right),
+\qquad i=1,\ldots,N_p.\]</div>
+<p>This is not a collection of independent one-step predictions. Prediction error
+can accumulate through the autoregressive output history, which is why a good
+one-step RMSE does not guarantee accurate long-horizon MPC behavior.</p>
+</section>
+<section id="prediction-jacobian">
+<h2>Prediction Jacobian<a class="headerlink" href="#prediction-jacobian" title="Link to this heading">¶</a></h2>
+<p>Let</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{Y}(\boldsymbol{u}_k)=
+\begin{bmatrix}
+\hat y_{k+1|k}&amp;\cdots&amp;\hat y_{k+N_p|k}
+\end{bmatrix}^{\mathsf T}.\]</div>
+<p>The optimizer requires</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{G}_k=
+\frac{\partial\boldsymbol{Y}}
+{\partial\boldsymbol{u}_k^{\mathsf T}}.\]</div>
+<p>For each future step, the chain rule is propagated through the PCA projection,
+HONU feature map and recursive regressor:</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial\hat y_{k+i|k}}
+{\partial\boldsymbol{u}_k^{\mathsf T}}
+=
+\boldsymbol{c}^{\mathsf T}
+\frac{\partial\boldsymbol{\varphi}_i}
+{\partial\tilde{\boldsymbol{z}}_i^{\mathsf T}}
+\begin{bmatrix}0&amp;\boldsymbol{P}^{\mathsf T}\end{bmatrix}
+\frac{\partial\boldsymbol{x}_{k+i-1|k}}
+{\partial\boldsymbol{u}_k^{\mathsf T}}.\]</div>
+<p>For LNU,
+<span class="math notranslate nohighlight">\(\partial\boldsymbol{\varphi}/\partial\tilde{\boldsymbol{z}}^{\mathsf T}
+=\boldsymbol{I}\)</span>. For QNU, each row corresponding to
+<span class="math notranslate nohighlight">\(\tilde z_a\tilde z_b\)</span> contains
+<span class="math notranslate nohighlight">\(\tilde z_b\)</span> in column <span class="math notranslate nohighlight">\(a\)</span> and <span class="math notranslate nohighlight">\(\tilde z_a\)</span> in column
+<span class="math notranslate nohighlight">\(b\)</span>; the diagonal term contributes <span class="math notranslate nohighlight">\(2\tilde z_a\)</span>. The final factor
+contains both direct candidate-input derivatives and derivatives inherited
+through previous predicted outputs. This recursive Jacobian is the MPC analogue
+of recurrent sensitivity propagation in MRAC controller training.</p>
+</section>
+<section id="residual-form-of-the-mpc-objective">
+<h2>Residual form of the MPC objective<a class="headerlink" href="#residual-form-of-the-mpc-objective" title="Link to this heading">¶</a></h2>
+<p>Define the tracking residual</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{r}_y(\boldsymbol{u}_k)=
+\sqrt{Q}\left[
+\boldsymbol{Y}(\boldsymbol{u}_k)-\boldsymbol{Y}_{ref,k}
+\right].\]</div>
+<p>Let <span class="math notranslate nohighlight">\(\boldsymbol{D}_1\)</span> and <span class="math notranslate nohighlight">\(\boldsymbol{D}_2\)</span> denote the first- and
+second-difference operators, with boundary terms formed from the previously
+applied inputs. The complete least-squares residual is</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\boldsymbol{r}(\boldsymbol{u}_k)=
+\begin{bmatrix}
+\boldsymbol{r}_y(\boldsymbol{u}_k)\\
+\sqrt{R_{\Delta u}}\,\boldsymbol{D}_1\boldsymbol{u}_k\\
+\sqrt{R_{\Delta^2u}}\,\boldsymbol{D}_2\boldsymbol{u}_k\\
+\sqrt{R_u}\,\boldsymbol{u}_k
+\end{bmatrix},
+\qquad
+J=\boldsymbol{r}^{\mathsf T}\boldsymbol{r}.\end{split}\]</div>
+<p>Its Jacobian is</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\boldsymbol{J}_r=
+\begin{bmatrix}
+\sqrt{Q}\,\boldsymbol{G}_k\\
+\sqrt{R_{\Delta u}}\,\boldsymbol{D}_1\\
+\sqrt{R_{\Delta^2u}}\,\boldsymbol{D}_2\\
+\sqrt{R_u}\,\boldsymbol{I}
+\end{bmatrix}.\end{split}\]</div>
+</section>
+<section id="damped-gauss-newton-control-update">
+<h2>Damped Gauss–Newton control update<a class="headerlink" href="#damped-gauss-newton-control-update" title="Link to this heading">¶</a></h2>
+<p>At inner iteration <span class="math notranslate nohighlight">\(\ell\)</span>, the candidate sequence is updated by solving</p>
+<div class="math notranslate nohighlight">
+\[\left(\boldsymbol{J}_r^{\mathsf T}\boldsymbol{J}_r
++\lambda_{GN}\boldsymbol{I}\right)
+\Delta\boldsymbol{u}^{(\ell)}
+=-\boldsymbol{J}_r^{\mathsf T}
+\boldsymbol{r}(\boldsymbol{u}^{(\ell)}).\]</div>
+<p>The step is limited by the trust radius and accepted only when it decreases the
+nonlinear objective. Damping is increased after a rejected trial and reduced
+after a successful trial. The iteration stops after <code class="docutils literal notranslate"><span class="pre">opt_iter</span></code> iterations or
+when the accepted step/cost improvement becomes sufficiently small.</p>
+<p>The accepted optimum is shifted to initialize the next sample,</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{u}^{(0)}_{k+1}=
+\begin{bmatrix}
+u^{\star}_{k+1|k}&amp;\cdots&amp;u^{\star}_{k+N_p-1|k}&amp;
+u^{\star}_{k+N_p-1|k}
+\end{bmatrix}^{\mathsf T}.\]</div>
+<p>Only <span class="math notranslate nohighlight">\(u^{\star}_{k|k}\)</span> is applied. The remainder is a plan, not an open-
+loop command sequence.</p>
+</section>
+<section id="interpretation-of-mpc-learning">
+<h2>Interpretation of MPC learning<a class="headerlink" href="#interpretation-of-mpc-learning" title="Link to this heading">¶</a></h2>
+<p>The sliding-window option is adaptive model predictive control in the limited
+sense that the prediction-model weights are repeatedly reidentified from recent
+input-output data. It is not a general dual controller: the optimized input does
+not explicitly trade tracking against future information gain, and persistent
+excitation is not guaranteed. A short window can follow time variation but may
+be ill-conditioned; a long window lowers variance but can hide recent plant
+changes.</p>
+<p>The regularization terms are soft penalties. Since the current implementation
+has no general hard bounds on <span class="math notranslate nohighlight">\(u\)</span>, <span class="math notranslate nohighlight">\(\Delta u\)</span>, states or outputs,
+large values remain possible when the learned model, reference or optimizer
+requires them. <code class="docutils literal notranslate"><span class="pre">u_min</span></code> and <code class="docutils literal notranslate"><span class="pre">u_max</span></code> describe identification excitation, not
+MPC constraints.</p>
+</section>
+<section id="frozen-and-sliding-model-modes">
+<h2>Frozen and sliding model modes<a class="headerlink" href="#frozen-and-sliding-model-modes" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">run_mode</span> <span class="pre">=</span> <span class="pre">&quot;identify&quot;</span></code></dt><dd><p>Generates a batch identification record, computes PCA, fits the selected
+HONU model by Ridge or L-M and saves both the model weights and PCA basis.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">run_mode</span> <span class="pre">=</span> <span class="pre">&quot;mpc_frozen&quot;</span></code></dt><dd><p>Loads the model produced by <strong>Identify HONU Plant</strong>.  Both
+<span class="math notranslate nohighlight">\(\boldsymbol{P}\)</span> and <span class="math notranslate nohighlight">\(\boldsymbol{c}\)</span> remain fixed throughout
+closed-loop operation.  A configuration consistency check rejects a saved
+model if an identification-dependent setting has changed.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">run_mode</span> <span class="pre">=</span> <span class="pre">&quot;mpc_sliding&quot;</span></code></dt><dd><p>Uses the initial excitation interval to compute one PCA basis.  During
+closed-loop operation, the prediction weights <span class="math notranslate nohighlight">\(\boldsymbol{c}\)</span> are
+repeatedly refitted from the latest sliding window by the selected Ridge or
+L-M method.  PCA remains frozen.</p>
+</dd>
+</dl>
+<p>The effective sliding-window sample count is</p>
+<div class="math notranslate nohighlight">
+\[N_w = \max\!\left(
+\left\lceil\frac{\mathtt{window\_length\_sec}}
+{\mathtt{dt\_control}}\right\rceil,
+\max(n_y,n_{\tau_u}+n_u)+3
+\right).\]</div>
+<p>A longer window reduces estimation variance and usually gives smoother model
+changes, but adapts more slowly to nonstationarity and costs more.  A shorter
+window adapts faster but has less excitation information and can become noisy
+or poorly conditioned.</p>
+</section>
+<section id="reference-model">
+<h2>Reference model<a class="headerlink" href="#reference-model" title="Link to this heading">¶</a></h2>
+<p>The MPC reference model is the cascade of two stable first-order systems. Its
+continuous-time transfer function is</p>
+<div class="math notranslate nohighlight">
+\[G_{\mathrm{ref}}(s)
+=\frac{Y_{\mathrm{ref}}(s)}{D(s)}
+=\frac{e^{-\tau_d s}}
+{(\tau_1 s+1)(\tau_2 s+1)},\]</div>
+<p>where <span class="math notranslate nohighlight">\(\tau_d=\mathtt{tau\_d\_delay}\)</span>. In the Python configuration,
+<span class="math notranslate nohighlight">\(\tau_1=\mathtt{tau1}\)</span> and <span class="math notranslate nohighlight">\(\tau_2=\mathtt{tau2}\)</span>. The exact
+sampled poles used by <code class="docutils literal notranslate"><span class="pre">HONU_MPC_runner.py</span></code> are</p>
+<div class="math notranslate nohighlight">
+\[a_1=\exp(-\mathtt{dt\_control}/\mathtt{tau1}),\qquad
+a_2=\exp(-\mathtt{dt\_control}/\mathtt{tau2}).\]</div>
+<p>The notation is intentionally separated from the PCA notation:
+<span class="math notranslate nohighlight">\(d\)</span> is the command, <span class="math notranslate nohighlight">\(y_{\mathrm{ref}}\)</span> is the reference-model
+output, <span class="math notranslate nohighlight">\(\boldsymbol{x}\)</span> is the HONU regressor, and
+<span class="math notranslate nohighlight">\(\boldsymbol{z}=\boldsymbol{P}^{\mathsf T}\boldsymbol{x}\)</span> is the
+PCA-reduced regressor. No scalar <span class="math notranslate nohighlight">\(z\)</span> is introduced for the reference
+model.</p>
+<p>Increasing either time constant makes <span class="math notranslate nohighlight">\(y_{\mathrm{ref}}\)</span> slower and
+smoother. Decreasing it demands faster closed-loop dynamics and generally
+increases required control action.</p>
+</section>
+<section id="parameter-reference">
+<h2>Parameter reference<a class="headerlink" href="#parameter-reference" title="Link to this heading">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 19.0%" />
+<col style="width: 21.0%" />
+<col style="width: 35.0%" />
+<col style="width: 25.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>GUI label</p></th>
+<th class="head"><p>Python name</p></th>
+<th class="head"><p>Meaning and use</p></th>
+<th class="head"><p>Increase / decrease</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>physical plant</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">physical_model</span></code></p></td>
+<td><p>Continuous-time ODE model used as the controlled plant.</p></td>
+<td><p>Changes equations, units, state dimension and definitions of <span class="math notranslate nohighlight">\(u\)</span> and <span class="math notranslate nohighlight">\(y\)</span>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>HONU</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">honu</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LNU</span></code> or <code class="docutils literal notranslate"><span class="pre">QNU</span></code> prediction architecture.</p></td>
+<td><p>QNU increases nonlinear expressiveness and parameter count; LNU is cheaper and usually better conditioned.</p></td>
+</tr>
+<tr class="row-even"><td><p>Use P regulator</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">preg_blackbox_enabled</span></code></p></td>
+<td><p>Uses <span class="math notranslate nohighlight">\(u_{phys}=r_{Preg}(u_{new}-y)\)</span> inside the ODE plant.</p></td>
+<td><p>Enabling changes the externally identified and controlled plant mapping.</p></td>
+</tr>
+<tr class="row-odd"><td><p>learning</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">plant_learning</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ridge</span></code> or <code class="docutils literal notranslate"><span class="pre">lm</span></code> identification of HONU weights.</p></td>
+<td><p>Ridge is a direct regularized solve; L-M is iterative and more expensive.</p></td>
+</tr>
+<tr class="row-even"><td><p>excitation</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">excitation_mode</span></code></p></td>
+<td><p>Random or alternating steps for ODE simulation, initial identification and command generation.</p></td>
+<td><p>Random steps improve amplitude diversity; alternating steps are deterministic.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dt</span> <span class="pre">MPC</span> <span class="pre">[s]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dt_control</span></code></p></td>
+<td><p>Sampling period of HONU data, reference model and MPC action.</p></td>
+<td><p>Larger: lower cost and coarser dynamics. Smaller: finer dynamics and higher cost.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dt</span> <span class="pre">sim</span> <span class="pre">[s]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dt_sim</span></code></p></td>
+<td><p>Internal ODE integration step; must not exceed <code class="docutils literal notranslate"><span class="pre">dt_control</span></code>.</p></td>
+<td><p>Larger: faster, less accurate. Smaller: more accurate, more expensive.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">sim</span> <span class="pre">[s]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">duration_sec</span></code></p></td>
+<td><p>ODE simulation and batch-identification duration.</p></td>
+<td><p>Larger: more identification data and cost. Smaller: less coverage.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">d</span> <span class="pre">duration</span> <span class="pre">[s]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">reference_duration_sec</span></code></p></td>
+<td><p>Closed-loop run duration.</p></td>
+<td><p>Larger: longer test and cost. Smaller: fewer command transitions.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">u</span> <span class="pre">step</span> <span class="pre">width</span> <span class="pre">[s]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">hold_sec</span></code></p></td>
+<td><p>Duration of one excitation step.</p></td>
+<td><p>Larger emphasizes slower dynamics; smaller adds faster excitation.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">d</span> <span class="pre">step</span> <span class="pre">width</span> <span class="pre">[s]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">reference_hold_sec</span></code></p></td>
+<td><p>Duration of one command step.</p></td>
+<td><p>Larger is easier to track; smaller is a more demanding bandwidth test.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">u_min</span></code>, <code class="docutils literal notranslate"><span class="pre">u_max</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">u_min</span></code>, <code class="docutils literal notranslate"><span class="pre">u_max</span></code></p></td>
+<td><p>Excitation range for ODE simulation and initial identification only.</p></td>
+<td><p>Wider improves coverage but can excite unsafe or strongly nonlinear regions. It does not clip MPC control.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">d_min</span></code>, <code class="docutils literal notranslate"><span class="pre">d_max</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">d_min</span></code>, <code class="docutils literal notranslate"><span class="pre">d_max</span></code></p></td>
+<td><p>Command range before reference filtering.</p></td>
+<td><p>Wider tests more operating points but increases extrapolation and control demand.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">tau_u</span> <span class="pre">[s]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tau_u_delay</span></code></p></td>
+<td><p>Pure input delay in the HONU regressor.</p></td>
+<td><p>Larger shifts input history farther into the past; incorrect values degrade identification.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">tau_d</span> <span class="pre">[s]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tau_d_delay</span></code></p></td>
+<td><p>Pure delay applied to command <span class="math notranslate nohighlight">\(d\)</span> before the reference model.</p></td>
+<td><p>Larger delays desired output changes; smaller makes them occur earlier.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">n_y</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">n_y</span></code></p></td>
+<td><p>Number of past output samples in the HONU regressor.</p></td>
+<td><p>Larger gives longer output memory but increases dimension and recursive-instability risk.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">n_u</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">n_u</span></code></p></td>
+<td><p>Number of delayed input samples in the HONU regressor.</p></td>
+<td><p>Larger represents longer input dynamics but increases dimension and collinearity.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">training</span> <span class="pre">length</span> <span class="pre">[s]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">window_length_sec</span></code></p></td>
+<td><p>Sliding fit window and initial excitation duration.</p></td>
+<td><p>Larger is smoother and slower to adapt; smaller is faster and noisier.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">lambda</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">lambda</span></code></p></td>
+<td><p>Ridge coefficient or initial L-M damping, depending on <code class="docutils literal notranslate"><span class="pre">plant_learning</span></code>.</p></td>
+<td><p>Larger regularizes or damps more; smaller fits more aggressively.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">epochs</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">lm_epochs</span></code></p></td>
+<td><p>Number of L-M iterations for each fit; disabled for Ridge.</p></td>
+<td><p>Larger can improve convergence but directly increases retraining cost.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">normalized</span> <span class="pre">gain</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mu_bibs</span></code></p></td>
+<td><p>Reserved GUI/configuration value for a normalized online correction. In the current <code class="docutils literal notranslate"><span class="pre">HONU_MPC_runner.py</span></code> it is logged but is not applied to the fitted weights or MPC law.</p></td>
+<td><p>Changing it currently has no numerical effect on HONU MPC results.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">denominator</span> <span class="pre">eps</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">eps_bibs</span></code></p></td>
+<td><p>Reserved denominator regularization for the normalized correction. In the current <code class="docutils literal notranslate"><span class="pre">HONU_MPC_runner.py</span></code> it is logged but not used.</p></td>
+<td><p>Changing it currently has no numerical effect on HONU MPC results.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">PCA</span> <span class="pre">mode</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pca_selection_mode</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rank</span></code> or <code class="docutils literal notranslate"><span class="pre">variability</span></code> component selection.</p></td>
+<td><p>Rank preserves all independent directions; variability permits dimension reduction.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">retained</span> <span class="pre">variability</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pca_retained_variability</span></code></p></td>
+<td><p>Target cumulative SVD energy in variability mode.</p></td>
+<td><p>Larger retains more information and features; smaller compresses more aggressively.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">tau</span> <span class="pre">1</span> <span class="pre">[s]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tau1</span></code></p></td>
+<td><p>First reference-model time constant.</p></td>
+<td><p>Larger slows and smooths the desired response; smaller accelerates it.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">tau</span> <span class="pre">2</span> <span class="pre">[s]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tau2</span></code></p></td>
+<td><p>Second reference-model time constant.</p></td>
+<td><p>Larger slows and smooths the desired response; smaller accelerates it.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">r_Preg</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">r_preg</span></code></p></td>
+<td><p>Gain of the optional internal P regulator.</p></td>
+<td><p>Larger magnitude strengthens the inner loop but can increase oscillation or instability.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">MPC</span> <span class="pre">horizon</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">horizon</span></code></p></td>
+<td><p>Prediction and optimized-input horizon <span class="math notranslate nohighlight">\(N_p\)</span>.</p></td>
+<td><p>Larger gives more foresight but increases Jacobian and optimization cost; smaller is more myopic.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Q</span> <span class="pre">tracking</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">q_track</span></code></p></td>
+<td><p>Weight on predicted tracking error.</p></td>
+<td><p>Larger prioritizes tracking and usually increases control action; smaller tolerates more error.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">R</span> <span class="pre">delta</span> <span class="pre">u</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">r_du</span></code></p></td>
+<td><p>Weight on first input differences.</p></td>
+<td><p>Larger smooths input changes; smaller permits faster movement.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">R</span> <span class="pre">delta2</span> <span class="pre">u</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">r_ddu</span></code></p></td>
+<td><p>Weight on second input differences.</p></td>
+<td><p>Larger suppresses curvature and input chattering; smaller permits sharper changes.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">R</span> <span class="pre">u</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">r_u</span></code></p></td>
+<td><p>Weight on absolute input magnitude.</p></td>
+<td><p>Larger keeps <span class="math notranslate nohighlight">\(u\)</span> near zero; smaller permits larger steady control values.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">optimizer</span> <span class="pre">iter.</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">opt_iter</span></code></p></td>
+<td><p>Maximum damped Gauss–Newton iterations per MPC sample.</p></td>
+<td><p>Larger can reduce the local cost but increases real-time computation; smaller may stop early.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">seed</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">seed</span></code></p></td>
+<td><p>Random generator seed for reproducible excitation and command sequences.</p></td>
+<td><p>Changes the realization, not the algorithmic gain or time scale.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">line</span> <span class="pre">width</span> <span class="pre">[px]</span></code></p></td>
+<td><p>GUI plotting state</p></td>
+<td><p>Plot-curve width only.</p></td>
+<td><p>No effect on identification, prediction or control.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="workflow-buttons">
+<h2>Workflow buttons<a class="headerlink" href="#workflow-buttons" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">1.</span> <span class="pre">Simulate</span> <span class="pre">physical</span> <span class="pre">ODE</span> <span class="pre">plant</span></code> runs the selected ODE plant without HONU
+identification or MPC.  <code class="docutils literal notranslate"><span class="pre">2.</span> <span class="pre">Identify</span> <span class="pre">HONU</span> <span class="pre">Plant</span></code> creates the batch model and
+PCA basis required by frozen mode.  <code class="docutils literal notranslate"><span class="pre">3.1</span> <span class="pre">MPC</span> <span class="pre">-</span> <span class="pre">Frozen</span> <span class="pre">HONU</span></code> uses that saved
+model without weight updates.  <code class="docutils literal notranslate"><span class="pre">3.2</span> <span class="pre">MPC</span> <span class="pre">-</span> <span class="pre">Sliding</span> <span class="pre">Retraining</span></code> computes one
+initial PCA basis and repeatedly refits the HONU weights on the active window.</p>
+</section>
+<section id="implementation-diagnostics">
+<h2>Implementation diagnostics<a class="headerlink" href="#implementation-diagnostics" title="Link to this heading">¶</a></h2>
+<p>The result files store the selected PCA dimension, numerical rank, retained
+variability, singular values, projection matrix, HONU weights, identification
+RMSE, local <span class="math notranslate nohighlight">\(\rho(A_y)\)</span> and, for L-M, local weight-update spectral-radius
+information.  These diagnostics describe the fitted prediction model; they
+are not additional controller-learning laws.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">SISO Adaptive Control</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Software modes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../software_overview.html">Software overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../measured_data.html">Measured-data input and processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scope_and_limitations.html">Purpose, scope and limitations</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Models and control</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../models/index.html">Plant models</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">HONU, learning methods, and GUI parameters</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="honu_models.html">Plant HONU: LNU and QNU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="learning_methods.html">HONU learning: Ridge, GD, NGD, and L-M</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mrac_architecture.html">HONU MRAC architecture and recurrent controller learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_parameters.html">HONU MRAC menu parameters</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">HONU MPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mlp_mpc.html">MLP in MPC</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">HONU, learning methods, and GUI parameters</a><ul>
+      <li>Previous: <a href="gui_parameters.html" title="previous chapter">HONU MRAC menu parameters</a></li>
+      <li>Next: <a href="mlp_mpc.html" title="next chapter">MLP in MPC</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/honu/honu_mpc.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

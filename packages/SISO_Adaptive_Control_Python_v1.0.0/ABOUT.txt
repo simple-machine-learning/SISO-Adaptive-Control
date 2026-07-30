@@ -1,0 +1,14 @@
+SISO Adaptive Control v1.0.0
+
+This is a software environment for demonstrating and evaluating machine learning methods for adaptive identification, prediction, and control of Single-Input Single-Output (SISO) dynamic systems using Higher-Order Neural Units (HONUs). The implemented methods are designed for efficient learning from limited data on resource-constrained computing platforms.
+
+Author: Ivo Bukovsky
+Copyright © 2026 Ivo Bukovsky
+
+GitHub repository: https://github.com/simple-machine-learning
+
+Software license: Apache License 2.0
+Documentation license: Creative Commons Attribution 4.0 International License (CC BY 4.0)
+
+Citation information: CITATION.cff 
+

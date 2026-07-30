@@ -1,0 +1,5 @@
+Windows Python-only distribution
+
+This package contains no project C++, Cython, Numba, compiled extension modules, native wrappers, or native build scripts.
+All physical ODE models use scipy.integrate.solve_ivp. Auto selects RK45 for standard models and Radau for designated stiff models.
+HONU, MLP, direct multi-horizon prediction, MPC optimization, and MRAC adaptation use their NumPy/SciPy Python implementations.

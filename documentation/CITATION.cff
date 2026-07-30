@@ -1,0 +1,118 @@
+cff-version: 1.2.0
+message: >-
+  If you refer to this software, its methodology, or results obtained with it,
+  please cite this software release and the relevant methodological
+  publications listed below.
+
+title: SISO Adaptive Control
+type: software
+version: 1.0.0
+date-released: 2026-07-29
+
+author:
+  - family-names: Bukovsky
+    given-names: Ivo
+
+repository-code: https://github.com/simple-machine-learning/SISO-Adaptive-Control
+url: https://github.com/simple-machine-learning/SISO-Adaptive-Control
+
+abstract: >-
+  A unified research and teaching environment for data-driven identification
+  and control of simulated and measured SISO systems. The software supports
+  LNU- and QNU-based plant identification and model-reference adaptive control,
+  as well as conventional model predictive control using LNU, QNU, or MLP
+  predictive plant models. It includes one-step and recursive multi-step
+  prediction, frozen-model and sliding-retraining MPC, spectral-radius
+  diagnostics for learned recursive-model loop stability, BIBS-oriented
+  monitoring, and 38 physical ODE plant models in the simulated workflow.
+  Version 1.0.0 is distributed as a portable pure-Python edition and a Linux
+  edition with selected native performance improvements.
+
+keywords:
+  - small data machine learning
+  - data-driven control
+  - system identification
+  - SISO systems
+  - higher-order neural units
+  - HONU
+  - LNU
+  - QNU
+  - MLP
+  - model reference adaptive control
+  - MRAC
+  - model predictive control
+  - MPC
+  - spectral radius
+  - BIBS stability
+
+preferred-citation:
+  type: software
+  title: SISO Adaptive Control
+  version: 1.0.0
+  date-released: 2026-07-29
+  authors:
+    - family-names: Bukovsky
+      given-names: Ivo
+  repository-code: https://github.com/YOUR_GITHUB_USERNAME/small-data-machine-learning
+
+references:
+  - type: article
+    title: An Approach to Stable Gradient-Descent Adaptation of Higher-Order Neural Units
+    authors:
+      - family-names: Bukovsky
+        given-names: Ivo
+      - family-names: Homma
+        given-names: Noriyasu
+    journal: IEEE Transactions on Neural Networks and Learning Systems
+    year: 2017
+    volume: 28
+    issue: 9
+    start: 2022
+    end: 2034
+    doi: 10.1109/TNNLS.2016.2572310
+
+  - type: article
+    title: A Letter on Convergence of In-Parameter-Linear Nonlinear Neural Architectures with Gradient Learnings
+    authors:
+      - family-names: Bukovsky
+        given-names: Ivo
+      - family-names: Dohnal
+        given-names: Gejza
+      - family-names: Benes
+        given-names: Peter M.
+      - family-names: Ichiji
+        given-names: Kei
+      - family-names: Homma
+        given-names: Noriyasu
+    journal: IEEE Transactions on Neural Networks and Learning Systems
+    year: 2023
+    volume: 34
+    issue: 8
+    start: 5189
+    end: 5192
+    doi: 10.1109/TNNLS.2021.3123533
+
+  - type: conference-paper
+    title: Framework for Discrete-Time Model Reference Adaptive Control of Weakly Nonlinear Systems with HONUs
+    authors:
+      - family-names: Benes
+        given-names: Peter M.
+      - family-names: Bukovsky
+        given-names: Ivo
+      - family-names: Vesely
+        given-names: Martin
+      - family-names: Voracek
+        given-names: Jan
+      - family-names: Ichiji
+        given-names: Kei
+      - family-names: Homma
+        given-names: Noriyasu
+    collection-title: Computational Intelligence
+    collection-type: book
+    year: 2019
+    start: 239
+    end: 262
+    publisher:
+      name: Springer
+      city: Cham
+    doi: 10.1007/978-3-030-16469-0_13

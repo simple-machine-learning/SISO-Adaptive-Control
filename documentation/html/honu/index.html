@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>HONU, learning methods, and GUI parameters &#8212; SISO Adaptive Control  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=12dfc556" />
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Plant HONU: LNU and QNU" href="honu_models.html" />
+    <link rel="prev" title="Wireless: transmit-power / SNR control" href="../models/wireless_power_snr.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="honu-learning-methods-and-gui-parameters">
+<h1>HONU, learning methods, and GUI parameters<a class="headerlink" href="#honu-learning-methods-and-gui-parameters" title="Link to this heading">¶</a></h1>
+<p>This section documents the higher-order neural units (HONU), their learning
+methods, the MLP prediction backend used by MPC, and the common parameters
+exposed in the <strong>HONU MRAC</strong> and <strong>HONU MPC</strong> pages. Python identifiers are
+written exactly as used by the project.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="honu_models.html">Plant HONU: LNU and QNU</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="honu_models.html#purpose-of-the-plant-honu">Purpose of the plant HONU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="honu_models.html#lnu-plant-model">LNU plant model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="honu_models.html#qnu-plant-model">QNU plant model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="honu_models.html#requirements-on-identification-trajectories">Requirements on identification trajectories</a></li>
+<li class="toctree-l2"><a class="reference internal" href="honu_models.html#identification-problem">Identification problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="honu_models.html#plant-model-use-and-validation">Plant-model use and validation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="learning_methods.html">HONU learning: Ridge, GD, NGD, and L-M</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="learning_methods.html#learning-objective-and-notation">Learning objective and notation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="learning_methods.html#batch-least-squares-and-ridge">Batch least squares and Ridge</a></li>
+<li class="toctree-l2"><a class="reference internal" href="learning_methods.html#gradient-descent">Gradient descent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="learning_methods.html#normalized-gradient-descent">Normalized gradient descent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="learning_methods.html#levenberg-marquardt">Levenberg–Marquardt</a></li>
+<li class="toctree-l2"><a class="reference internal" href="learning_methods.html#plant-learning-diagnostics">Plant-learning diagnostics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="learning_methods.html#controller-learning-differs-from-plant-identification">Controller learning differs from plant identification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="learning_methods.html#use-in-mpc">Use in MPC</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mrac_architecture.html">HONU MRAC architecture and recurrent controller learning</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mrac_architecture.html#architecture">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mrac_architecture.html#application-to-stable-or-pre-stabilized-plants">Application to stable or pre-stabilized plants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mrac_architecture.html#reference-model">Reference model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mrac_architecture.html#controller-regressors">Controller regressors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mrac_architecture.html#closed-loop-training-objective">Closed-loop training objective</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mrac_architecture.html#recurrent-sensitivity-derivation">Recurrent sensitivity derivation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mrac_architecture.html#epoch-training">Epoch training</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mrac_architecture.html#local-learning-and-closed-loop-diagnostics">Local learning and closed-loop diagnostics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mrac_architecture.html#what-is-learned">What is learned</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gui_parameters.html">HONU MRAC menu parameters</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gui_parameters.html#model-and-signal-selectors">Model and signal selectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_parameters.html#simulation-parameters">Simulation parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_parameters.html#reference-model-parameters">Reference-model parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_parameters.html#plant-honu-parameters">Plant HONU parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_parameters.html#controller-learning-parameters">Controller-learning parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_parameters.html#parameter-interactions-and-cautions">Parameter interactions and cautions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_parameters.html#honu-mpc-parameters">HONU MPC parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="honu_mpc.html">HONU MPC</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="honu_mpc.html#purpose-and-computational-structure">Purpose and computational structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="honu_mpc.html#application-to-stable-or-pre-stabilized-plants">Application to stable or pre-stabilized plants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="honu_mpc.html#regressor-and-delays">Regressor and delays</a></li>
+<li class="toctree-l2"><a class="reference internal" href="honu_mpc.html#pca-reduction">PCA reduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="honu_mpc.html#honu-feature-construction">HONU feature construction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="honu_mpc.html#identification-by-ridge-or-l-m">Identification by Ridge or L-M</a></li>
+<li class="toctree-l2"><a class="reference internal" href="honu_mpc.html#mpc-objective">MPC objective</a></li>
+<li class="toctree-l2"><a class="reference internal" href="honu_mpc.html#what-is-learned-and-what-is-optimized">What is learned and what is optimized</a></li>
+<li class="toctree-l2"><a class="reference internal" href="honu_mpc.html#recursive-prediction">Recursive prediction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="honu_mpc.html#prediction-jacobian">Prediction Jacobian</a></li>
+<li class="toctree-l2"><a class="reference internal" href="honu_mpc.html#residual-form-of-the-mpc-objective">Residual form of the MPC objective</a></li>
+<li class="toctree-l2"><a class="reference internal" href="honu_mpc.html#damped-gauss-newton-control-update">Damped Gauss–Newton control update</a></li>
+<li class="toctree-l2"><a class="reference internal" href="honu_mpc.html#interpretation-of-mpc-learning">Interpretation of MPC learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="honu_mpc.html#frozen-and-sliding-model-modes">Frozen and sliding model modes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="honu_mpc.html#reference-model">Reference model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="honu_mpc.html#parameter-reference">Parameter reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="honu_mpc.html#workflow-buttons">Workflow buttons</a></li>
+<li class="toctree-l2"><a class="reference internal" href="honu_mpc.html#implementation-diagnostics">Implementation diagnostics</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mlp_mpc.html">MLP in MPC</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mlp_mpc.html#scope">Scope</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mlp_mpc.html#selection-in-the-gui">Selection in the GUI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mlp_mpc.html#regressor-and-prediction-target">Regressor and prediction target</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mlp_mpc.html#preprocessing-and-pca">Preprocessing and PCA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mlp_mpc.html#implemented-mlp-architecture">Implemented MLP architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mlp_mpc.html#training-objective-and-optimizers">Training objective and optimizers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mlp_mpc.html#recursive-one-step-mode">Recursive one-step mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mlp_mpc.html#direct-multi-horizon-mode">Direct multi-horizon mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mlp_mpc.html#frozen-and-sliding-retraining-operation">Frozen and sliding-retraining operation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mlp_mpc.html#mpc-objective-and-applied-action">MPC objective and applied action</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mlp_mpc.html#saved-results-and-diagnostics">Saved results and diagnostics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mlp_mpc.html#practical-interpretation-of-the-controls">Practical interpretation of the controls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mlp_mpc.html#limitations-specific-to-mlp-mpc">Limitations specific to MLP MPC</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">SISO Adaptive Control</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Software modes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../software_overview.html">Software overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../measured_data.html">Measured-data input and processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scope_and_limitations.html">Purpose, scope and limitations</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Models and control</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../models/index.html">Plant models</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">HONU, learning methods, and GUI parameters</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="honu_models.html">Plant HONU: LNU and QNU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="learning_methods.html">HONU learning: Ridge, GD, NGD, and L-M</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mrac_architecture.html">HONU MRAC architecture and recurrent controller learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_parameters.html">HONU MRAC menu parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="honu_mpc.html">HONU MPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mlp_mpc.html">MLP in MPC</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../models/wireless_power_snr.html" title="previous chapter">Wireless: transmit-power / SNR control</a></li>
+      <li>Next: <a href="honu_models.html" title="next chapter">Plant HONU: LNU and QNU</a></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/honu/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

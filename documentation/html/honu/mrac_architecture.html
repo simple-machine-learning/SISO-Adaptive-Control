@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>HONU MRAC architecture and recurrent controller learning &#8212; SISO Adaptive Control  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=12dfc556" />
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="HONU MRAC menu parameters" href="gui_parameters.html" />
+    <link rel="prev" title="HONU learning: Ridge, GD, NGD, and L-M" href="learning_methods.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="honu-mrac-architecture-and-recurrent-controller-learning">
+<h1>HONU MRAC architecture and recurrent controller learning<a class="headerlink" href="#honu-mrac-architecture-and-recurrent-controller-learning" title="Link to this heading">¶</a></h1>
+<section id="architecture">
+<h2>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">¶</a></h2>
+<p>The implemented workflow is an indirect, model-based MRAC procedure. The
+physical plant is first excited and identified by an LNU or QNU. The adaptive
+controller is then trained in a closed loop containing this learned HONU plant.
+Finally, the trained controller is evaluated against the original physical ODE
+plant. The following signals are distinguished:</p>
+<div class="math notranslate nohighlight">
+\[d(k) \;\text{: command},\qquad
+y_{\mathrm{ref}}(k) \;\text{: reference-model output},\]</div>
+<div class="math notranslate nohighlight">
+\[y(k) \;\text{: HONU/physical plant output},\qquad
+e_r(k)=y(k)-y_{\mathrm{ref}}(k).\]</div>
+<p>The controller contains an LNU or QNU adaptive block that produces
+<span class="math notranslate nohighlight">\(q(k)\)</span> and a separately adapted scalar gain <span class="math notranslate nohighlight">\(r_0\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[u(k)=r_0\,[d(k)-q(k)].\]</div>
+<p>This structure gives <span class="math notranslate nohighlight">\(r_0\)</span> a direct influence on command gain and control
+action, while <span class="math notranslate nohighlight">\(q(k)\)</span> provides dynamic feedback compensation. The project
+limits <span class="math notranslate nohighlight">\(r_0\)</span> to the configured interval
+<span class="math notranslate nohighlight">\([r_{0,min},r_{0,max}]\)</span> after each update. The control signal itself is
+not generally saturated.</p>
+</section>
+<section id="application-to-stable-or-pre-stabilized-plants">
+<h2>Application to stable or pre-stabilized plants<a class="headerlink" href="#application-to-stable-or-pre-stabilized-plants" title="Link to this heading">¶</a></h2>
+<p>Controller training is performed against an identified HONU plant and therefore
+inherits the validity limits of the identification data. The intended practical
+use is a naturally stable plant or a plant already stabilized by an independent
+feedback controller. For an open-loop unstable process, that stabilizing loop
+must remain responsible for bounded and safe behaviour during data acquisition
+and controller validation.</p>
+<p>The MRAC layer can then improve reference tracking, transient behaviour or
+disturbance rejection within the covered operating region. The present
+implementation does not prove that the learned controller stabilizes an
+arbitrary initially unstable nonlinear plant. Deployment outside the
+data-supported range requires separate stability, constraint and safety
+analysis.</p>
+</section>
+<section id="reference-model">
+<h2>Reference model<a class="headerlink" href="#reference-model" title="Link to this heading">¶</a></h2>
+<p>The reference model is the cascade of two stable first-order systems. Its
+continuous-time transfer function is</p>
+<div class="math notranslate nohighlight">
+\[G_{\mathrm{ref}}(s)
+=\frac{Y_{\mathrm{ref}}(s)}{D(s)}
+=\frac{e^{-n_{u,1}T_s s}}
+{(\tau_1 s+1)(\tau_2 s+1)},\]</div>
+<p>where the command delay is derived from the identified plant-input delay,</p>
+<div class="math notranslate nohighlight">
+\[n_{u,1}=\left\lfloor\frac{\tau_u}{T_s}\right\rfloor.\]</div>
+<p>Thus <span class="math notranslate nohighlight">\(d\)</span> is the command, <span class="math notranslate nohighlight">\(y_{\mathrm{ref}}\)</span> is the output of the
+reference model, and no additional reference-model state symbol is required in
+the mathematical documentation. In the MRAC Python setup, the filter time
+constants are <code class="docutils literal notranslate"><span class="pre">Tau_1</span></code> and <code class="docutils literal notranslate"><span class="pre">Tau_2</span></code>. The separate variable <code class="docutils literal notranslate"><span class="pre">tau_d</span></code> denotes
+the reference switching period and must not be interpreted as this transport
+delay. The present Python training scripts implement
+the two filters recursively and use a local scalar variable <code class="docutils literal notranslate"><span class="pre">z</span></code> for the
+intermediate filter output. That local implementation variable is not the same
+quantity as the PCA vector <span class="math notranslate nohighlight">\(\boldsymbol{z}\)</span> used in HONU MPC.</p>
+<p>Increasing <span class="math notranslate nohighlight">\(\tau_1\)</span> or <span class="math notranslate nohighlight">\(\tau_2\)</span> makes the demanded response slower
+and generally reduces control effort. A reference model faster than the
+identified or physical plant may demand trajectories that are unreachable or
+outside the data-supported region of the HONU approximation.</p>
+</section>
+<section id="controller-regressors">
+<h2>Controller regressors<a class="headerlink" href="#controller-regressors" title="Link to this heading">¶</a></h2>
+<p>For an LNU controller, the project uses a recurrent regressor composed of a
+constant, recent plant outputs and recent reference errors,</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\xi}(k)=
+\begin{bmatrix}
+1 &amp; y(k) &amp; \cdots &amp; y(k-n_y+1) &amp;
+e_r(k) &amp; \cdots &amp; e_r(k-n_e+1)
+\end{bmatrix}^{\mathsf T},\]</div>
+<p>with <span class="math notranslate nohighlight">\(n_e=n_y\)</span> in the current scripts. The controller output is</p>
+<div class="math notranslate nohighlight">
+\[q(k)=\boldsymbol{v}^{\mathsf T}\boldsymbol{\xi}(k).\]</div>
+<p>For a QNU controller,</p>
+<div class="math notranslate nohighlight">
+\[q(k)=\boldsymbol{v}^{\mathsf T}
+\boldsymbol{\psi}(\boldsymbol{\xi}(k)),\]</div>
+<p>where <span class="math notranslate nohighlight">\(\boldsymbol{\psi}\)</span> contains all upper-triangular products
+<span class="math notranslate nohighlight">\(\xi_i\xi_j\)</span>, including constant and linear terms through
+<span class="math notranslate nohighlight">\(\xi_0=1\)</span>.</p>
+</section>
+<section id="closed-loop-training-objective">
+<h2>Closed-loop training objective<a class="headerlink" href="#closed-loop-training-objective" title="Link to this heading">¶</a></h2>
+<p>At each sample, the controller minimizes</p>
+<div class="math notranslate nohighlight">
+\[E_k=\frac{1}{2}e_r^2(k)
+=\frac{1}{2}[y(k)-y_{\mathrm{ref}}(k)]^2.\]</div>
+<p>The reference model does not depend on the controller parameters. Therefore</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial E_k}{\partial\boldsymbol{v}}
+=e_r(k)\frac{\partial y(k)}{\partial\boldsymbol{v}},
+\qquad
+\frac{\partial E_k}{\partial r_0}
+=e_r(k)\frac{\partial y(k)}{\partial r_0}.\]</div>
+<p>Define the exact recurrent sensitivities</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{g}_v(k)=\frac{\partial y(k)}{\partial\boldsymbol{v}},
+\qquad
+g_{r_0}(k)=\frac{\partial y(k)}{\partial r_0}.\]</div>
+<p>The GD updates are then</p>
+<div class="math notranslate nohighlight">
+\[\Delta\boldsymbol{v}(k)
+=-\mu_v e_r(k)\boldsymbol{g}_v(k),\]</div>
+<div class="math notranslate nohighlight">
+\[\Delta r_0(k)
+=-\mu_{r_0}e_r(k)g_{r_0}(k).\]</div>
+<p>For NGD,</p>
+<div class="math notranslate nohighlight">
+\[\eta_v(k)=\frac{\mu_v}
+{\varepsilon+\boldsymbol{g}_v^{\mathsf T}(k)\boldsymbol{g}_v(k)},
+\qquad
+\eta_{r_0}(k)=\frac{\mu_{r_0}}
+{\varepsilon+g_{r_0}^2(k)},\]</div>
+<div class="math notranslate nohighlight">
+\[\Delta\boldsymbol{v}(k)=-\eta_v(k)e_r(k)\boldsymbol{g}_v(k),
+\qquad
+\Delta r_0(k)=-\eta_{r_0}(k)e_r(k)g_{r_0}(k).\]</div>
+<p>The implemented update may additionally smooth increments,</p>
+<div class="math notranslate nohighlight">
+\[\Delta\boldsymbol{v}_s(k)=
+\alpha_v\Delta\boldsymbol{v}(k)
++(1-\alpha_v)\Delta\boldsymbol{v}_s(k-1),\]</div>
+<div class="math notranslate nohighlight">
+\[\Delta r_{0,s}(k)=
+\alpha_{r_0}\Delta r_0(k)
++(1-\alpha_{r_0})\Delta r_{0,s}(k-1),\]</div>
+<p>when the selected controller script/configuration applies these factors.</p>
+</section>
+<section id="recurrent-sensitivity-derivation">
+<h2>Recurrent sensitivity derivation<a class="headerlink" href="#recurrent-sensitivity-derivation" title="Link to this heading">¶</a></h2>
+<p>The central point is that the controller regressor contains past outputs and
+errors, which themselves depend on previous controller parameters. The gradient
+cannot be reduced to the direct derivative of the current HONU output.</p>
+<p>For the LNU controller,</p>
+<div class="math notranslate nohighlight">
+\[q(k-1)=\boldsymbol{v}^{\mathsf T}\boldsymbol{\xi}(k-1),\]</div>
+<p>hence</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial q(k-1)}{\partial\boldsymbol{v}}
+=\boldsymbol{\xi}(k-1)+
+\left(\frac{\partial\boldsymbol{\xi}(k-1)}
+{\partial\boldsymbol{v}^{\mathsf T}}\right)^{\mathsf T}
+\boldsymbol{v}.\]</div>
+<p>Because</p>
+<div class="math notranslate nohighlight">
+\[u(k-1)=r_0[d(k-1)-q(k-1)],\]</div>
+<div class="math notranslate nohighlight">
+\[\frac{\partial u(k-1)}{\partial\boldsymbol{v}}
+=-r_0\frac{\partial q(k-1)}{\partial\boldsymbol{v}},\]</div>
+<div class="math notranslate nohighlight">
+\[\frac{\partial u(k-1)}{\partial r_0}
+=d(k-1)-q(k-1)-r_0
+\frac{\partial q(k-1)}{\partial r_0}.\]</div>
+<p>For an LNU plant,</p>
+<div class="math notranslate nohighlight">
+\[y(k)=w_0+
+\sum_{i=1}^{n_y}w_{y,i}y(k-i)+
+\sum_{j=1}^{n_u}w_{u,j}u(k-n_{u,1}-j).\]</div>
+<p>Differentiating yields the recurrent relations</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{g}_v(k)=
+\sum_{i=1}^{n_y}w_{y,i}\boldsymbol{g}_v(k-i)+
+\sum_{j=1}^{n_u}w_{u,j}
+\frac{\partial u(k-n_{u,1}-j)}{\partial\boldsymbol{v}},\]</div>
+<div class="math notranslate nohighlight">
+\[g_{r_0}(k)=
+\sum_{i=1}^{n_y}w_{y,i}g_{r_0}(k-i)+
+\sum_{j=1}^{n_u}w_{u,j}
+\frac{\partial u(k-n_{u,1}-j)}{\partial r_0}.\]</div>
+<p>The sensitivities are initialized to zero and propagated sample by sample
+through the complete closed-loop history. This is a real-time recurrent
+learning form specialized to a compact polynomial controller and plant model.</p>
+<p>For a QNU plant, the scalar plant equation is replaced by</p>
+<div class="math notranslate nohighlight">
+\[y(k)=\boldsymbol{w}^{\mathsf T}
+\boldsymbol{\phi}_{Q}(\boldsymbol{x}(k)),\]</div>
+<p>and the chain rule gives</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{g}_v(k)=
+\frac{\partial y(k)}{\partial\boldsymbol{x}^{\mathsf T}(k)}
+\frac{\partial\boldsymbol{x}(k)}
+{\partial\boldsymbol{v}^{\mathsf T}},\]</div>
+<div class="math notranslate nohighlight">
+\[g_{r_0}(k)=
+\frac{\partial y(k)}{\partial\boldsymbol{x}^{\mathsf T}(k)}
+\frac{\partial\boldsymbol{x}(k)}{\partial r_0}.\]</div>
+<p>For a QNU controller, the direct derivative becomes</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial q}{\partial\boldsymbol{v}}
+=\boldsymbol{\psi}(\boldsymbol{\xi})+
+\boldsymbol{v}^{\mathsf T}
+\frac{\partial\boldsymbol{\psi}}
+{\partial\boldsymbol{\xi}^{\mathsf T}}
+\frac{\partial\boldsymbol{\xi}}
+{\partial\boldsymbol{v}^{\mathsf T}}.\]</div>
+<p>Thus all four combinations LNU–LNU, LNU–QNU, QNU–LNU and QNU–QNU use the
+same chain-rule structure; only the plant and controller feature Jacobians
+change.</p>
+</section>
+<section id="epoch-training">
+<h2>Epoch training<a class="headerlink" href="#epoch-training" title="Link to this heading">¶</a></h2>
+<p>Each epoch restarts the simulated HONU closed-loop state histories from the
+same initial condition and replays the same complete reference record. The
+controller parameters <span class="math notranslate nohighlight">\(\boldsymbol{v}\)</span> and <span class="math notranslate nohighlight">\(r_0\)</span> are retained
+between epochs. This separates repeated optimization of the controller from an
+uncontrolled continuation of plant-state history.</p>
+<p>The resulting controller is therefore optimized for the learned HONU plant and
+the chosen training reference distribution. It is not trained directly on the
+physical ODE during module 03. Module 04 is an out-of-model validation and can
+expose approximation error, unreachable references and control actions outside
+the identification domain.</p>
+</section>
+<section id="local-learning-and-closed-loop-diagnostics">
+<h2>Local learning and closed-loop diagnostics<a class="headerlink" href="#local-learning-and-closed-loop-diagnostics" title="Link to this heading">¶</a></h2>
+<p>Linearizing the instantaneous controller update gives</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{A}_v(k)=\boldsymbol{I}-\eta_v(k)
+\boldsymbol{g}_v(k)\boldsymbol{g}_v^{\mathsf T}(k),\]</div>
+<div class="math notranslate nohighlight">
+\[A_{r_0}(k)=1-\eta_{r_0}(k)g_{r_0}^2(k).\]</div>
+<p>The project monitors <span class="math notranslate nohighlight">\(\rho(\boldsymbol{A}_v(k))\)</span> and
+<span class="math notranslate nohighlight">\(|A_{r_0}(k)|\)</span> as local adaptation diagnostics. For the LNU–LNU case it
+also constructs a frozen closed-loop companion matrix <span class="math notranslate nohighlight">\(\boldsymbol{M}(k)\)</span>
+from the current plant and controller coefficients and reports
+<span class="math notranslate nohighlight">\(\rho(\boldsymbol{M}(k))\)</span>.</p>
+<p>These indicators are physically meaningful: values below one correspond to
+stable frozen linear update or closed-loop maps. They remain conditional on the
+identified model, the current operating point and frozen parameters. They do
+not prove global nonlinear stability of the complete time-varying adaptive
+system.</p>
+</section>
+<section id="what-is-learned">
+<h2>What is learned<a class="headerlink" href="#what-is-learned" title="Link to this heading">¶</a></h2>
+<p>Module 02 learns the plant weights <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span> from input-output
+data. Module 03 keeps <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span> fixed and learns the controller
+weights <span class="math notranslate nohighlight">\(\boldsymbol{v}\)</span> and direct gain <span class="math notranslate nohighlight">\(r_0\)</span> by minimizing
+model-reference tracking error through recurrent closed-loop sensitivities.
+Module 04 does not continue controller learning; it tests the saved controller
+on the physical ODE plant. HONU MPC uses a different procedure described in
+<a class="reference internal" href="honu_mpc.html"><span class="doc">HONU MPC</span></a>: it learns or refits prediction-model weights and optimizes a
+future control sequence rather than adapting <span class="math notranslate nohighlight">\(\boldsymbol{v}\)</span> and
+<span class="math notranslate nohighlight">\(r_0\)</span>.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">SISO Adaptive Control</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Software modes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../software_overview.html">Software overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../measured_data.html">Measured-data input and processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scope_and_limitations.html">Purpose, scope and limitations</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Models and control</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../models/index.html">Plant models</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">HONU, learning methods, and GUI parameters</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="honu_models.html">Plant HONU: LNU and QNU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="learning_methods.html">HONU learning: Ridge, GD, NGD, and L-M</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">HONU MRAC architecture and recurrent controller learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_parameters.html">HONU MRAC menu parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="honu_mpc.html">HONU MPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mlp_mpc.html">MLP in MPC</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">HONU, learning methods, and GUI parameters</a><ul>
+      <li>Previous: <a href="learning_methods.html" title="previous chapter">HONU learning: Ridge, GD, NGD, and L-M</a></li>
+      <li>Next: <a href="gui_parameters.html" title="next chapter">HONU MRAC menu parameters</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/honu/mrac_architecture.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

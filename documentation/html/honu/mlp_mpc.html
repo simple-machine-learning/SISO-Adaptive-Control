@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>MLP in MPC &#8212; SISO Adaptive Control  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=12dfc556" />
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="HONU MPC" href="honu_mpc.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="mlp-in-mpc">
+<h1>MLP in MPC<a class="headerlink" href="#mlp-in-mpc" title="Link to this heading">¶</a></h1>
+<section id="scope">
+<h2>Scope<a class="headerlink" href="#scope" title="Link to this heading">¶</a></h2>
+<p>This chapter documents what the multilayer perceptron (MLP) backend does in
+this software. It does not introduce general neural-network theory. In the
+<strong>HONU MPC</strong> page, selecting <code class="docutils literal notranslate"><span class="pre">MLP</span></code> replaces the LNU/QNU plant predictor by a
+nonlinear feed-forward prediction model. The physical plant, MPC objective,
+input bounds, receding-horizon application of the first optimized move and the
+frozen/sliding execution modes remain the same.</p>
+<p>The implementation is primarily in:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">apps/simulated/HONU_MPC_runner.py</span></code> for simulated plants,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">apps/measured/HONU_MPC_runner.py</span></code> for measured-data operation,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">apps/simulated/HONU_MRAC_GUI_PySide6.py</span></code> and
+<code class="docutils literal notranslate"><span class="pre">apps/measured/HONU_MRAC_GUI_PySide6.py</span></code> for GUI configuration,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">common/mlp_native.py</span></code> and the native MLP backend, when present, for the
+accelerated recursive predictor and Jacobian.</p></li>
+</ul>
+</section>
+<section id="selection-in-the-gui">
+<h2>Selection in the GUI<a class="headerlink" href="#selection-in-the-gui" title="Link to this heading">¶</a></h2>
+<p>Set <strong>model</strong> to <code class="docutils literal notranslate"><span class="pre">MLP</span></code>. The GUI then changes the model-specific controls as
+follows:</p>
+<ul class="simple">
+<li><p><strong>prediction</strong> offers <code class="docutils literal notranslate"><span class="pre">Recursive</span> <span class="pre">one-step</span></code> and
+<code class="docutils literal notranslate"><span class="pre">Direct</span> <span class="pre">multi-horizon</span> <span class="pre">+</span> <span class="pre">SLSQP</span></code>;</p></li>
+<li><p><strong>target</strong> is fixed to <code class="docutils literal notranslate"><span class="pre">Output</span> <span class="pre">increment</span></code>;</p></li>
+<li><p><strong>learning</strong> offers <code class="docutils literal notranslate"><span class="pre">Adam</span></code>, <code class="docutils literal notranslate"><span class="pre">L-BFGS</span></code> and <code class="docutils literal notranslate"><span class="pre">Adam</span> <span class="pre">+</span> <span class="pre">L-BFGS</span></code>;</p></li>
+<li><p><strong>MLP hidden</strong> accepts comma-separated positive hidden-layer widths, for
+example <code class="docutils literal notranslate"><span class="pre">8</span></code> or <code class="docutils literal notranslate"><span class="pre">16,8</span></code>;</p></li>
+<li><p><strong>epochs</strong> controls the number of optimizer epochs/iterations;</p></li>
+<li><p><strong>lambda</strong> is the MLP L2 weight-regularization coefficient.</p></li>
+</ul>
+<p>The MLP output width is automatic: one scalar in recursive mode and
+<span class="math notranslate nohighlight">\(N_p\)</span> values in direct multi-horizon mode.</p>
+</section>
+<section id="regressor-and-prediction-target">
+<h2>Regressor and prediction target<a class="headerlink" href="#regressor-and-prediction-target" title="Link to this heading">¶</a></h2>
+<p>For recursive one-step identification, the raw regressor is</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{x}_k =
+\begin{bmatrix}
+y_k &amp; \cdots &amp; y_{k-n_y+1} &amp;
+u_{k-n_{\tau_u}} &amp; \cdots &amp;
+u_{k-n_{\tau_u}-n_u+1}
+\end{bmatrix}^{\mathsf T}.\]</div>
+<p>The MLP is trained on the output increment</p>
+<div class="math notranslate nohighlight">
+\[\Delta y_{k+1}=y_{k+1}-y_k.\]</div>
+<p>Its physical one-step prediction is therefore reconstructed as</p>
+<div class="math notranslate nohighlight">
+\[\hat y_{k+1}=y_k+s_y\,f_{\boldsymbol{\theta}}(\boldsymbol{z}_k),\]</div>
+<p>where <span class="math notranslate nohighlight">\(f_{\boldsymbol{\theta}}\)</span> is the normalized MLP output,
+<span class="math notranslate nohighlight">\(s_y\)</span> is the stored target scale and <span class="math notranslate nohighlight">\(\boldsymbol{z}_k\)</span> is the
+preprocessed regressor.</p>
+<p>In direct multi-horizon mode, one training sample contains the same history
+block and the candidate future-input block required by the direct predictor.
+The network is trained on</p>
+<div class="math notranslate nohighlight">
+\[\begin{bmatrix}
+y_{k+1}-y_k &amp; \cdots &amp; y_{k+N_p}-y_k
+\end{bmatrix}^{\mathsf T},\]</div>
+<p>and produces all <span class="math notranslate nohighlight">\(N_p\)</span> future outputs in one forward pass:</p>
+<div class="math notranslate nohighlight">
+\[\hat{\boldsymbol{y}}_{k+1:k+N_p}
+=y_k\boldsymbol{1}
++s_y\,\boldsymbol{f}_{\boldsymbol{\theta}}(\boldsymbol{z}_k).\]</div>
+</section>
+<section id="preprocessing-and-pca">
+<h2>Preprocessing and PCA<a class="headerlink" href="#preprocessing-and-pca" title="Link to this heading">¶</a></h2>
+<p>The MLP preprocessing differs from the HONU basis construction. The stored
+output/input history coordinates are standardized first:</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{x}_{h,s}
+=\frac{\boldsymbol{x}_h-\boldsymbol{\mu}_h}
+{\boldsymbol{\sigma}_h}.\]</div>
+<p>PCA directions are then obtained from the standardized history data and the
+selected history representation is</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{z}_h
+=\boldsymbol{x}_{h,s}^{\mathsf T}\boldsymbol{P}.\]</div>
+<p><code class="docutils literal notranslate"><span class="pre">PCA</span> <span class="pre">mode</span> <span class="pre">=</span> <span class="pre">Rank</span></code> retains all numerically independent history components.
+<code class="docutils literal notranslate"><span class="pre">PCA</span> <span class="pre">mode</span> <span class="pre">=</span> <span class="pre">Variability</span></code> retains the smallest number meeting the selected
+cumulative variability. In direct multi-horizon mode, future candidate-input
+coordinates are standardized separately and appended after the compressed
+history coordinates; they are not included in the history PCA.</p>
+<p>The fitted means, standard deviations, PCA matrix, retained rank and target
+scale are stored with the identified model and reused during MPC prediction.</p>
+</section>
+<section id="implemented-mlp-architecture">
+<h2>Implemented MLP architecture<a class="headerlink" href="#implemented-mlp-architecture" title="Link to this heading">¶</a></h2>
+<p>The hidden layers use <code class="docutils literal notranslate"><span class="pre">tanh</span></code> activation and the output layer is linear. For
+hidden widths <span class="math notranslate nohighlight">\(h_1,\ldots,h_L\)</span>, the implemented map is</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{a}^{(1)}
+=\tanh\!\left(\boldsymbol{W}^{(1)}\boldsymbol{z}
++\boldsymbol{b}^{(1)}\right),\]</div>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{a}^{(\ell)}
+=\tanh\!\left(\boldsymbol{W}^{(\ell)}
+\boldsymbol{a}^{(\ell-1)}+\boldsymbol{b}^{(\ell)}\right),\]</div>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{o}
+=\boldsymbol{W}^{(L+1)}\boldsymbol{a}^{(L)}
++\boldsymbol{b}^{(L+1)}.\]</div>
+<p>The output dimension is one for recursive identification and <span class="math notranslate nohighlight">\(N_p\)</span> for
+direct multi-horizon identification. Biases are included in every layer.</p>
+</section>
+<section id="training-objective-and-optimizers">
+<h2>Training objective and optimizers<a class="headerlink" href="#training-objective-and-optimizers" title="Link to this heading">¶</a></h2>
+<p>The batch training objective is normalized mean-squared prediction error plus
+L2 regularization of weight matrices:</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{L}(\boldsymbol{\theta})
+=\frac{1}{N}\sum_{i=1}^{N}
+\left\|\boldsymbol{o}_i-\boldsymbol{t}_i\right\|_2^2
++\frac{\lambda}{2}\sum_{\ell}
+\left\|\boldsymbol{W}^{(\ell)}\right\|_{\mathrm{F}}^2.\]</div>
+<p>Bias vectors are not included in the L2 term. The selectable optimizers are:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">Adam</span></code></dt><dd><p>Runs Adam for the selected number of epochs using the internal learning
+rate <code class="docutils literal notranslate"><span class="pre">mlp_learning_rate</span></code>. The GUI currently supplies
+<span class="math notranslate nohighlight">\(10^{-3}\)</span>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">L-BFGS</span></code></dt><dd><p>Runs SciPy <code class="docutils literal notranslate"><span class="pre">L-BFGS-B</span></code> with the analytic batch gradient. <strong>epochs</strong> is
+used as the maximum iteration count.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">Adam</span> <span class="pre">+</span> <span class="pre">L-BFGS</span></code></dt><dd><p>Uses approximately half of <strong>epochs</strong> for Adam initialization and half for
+L-BFGS refinement. This is the GUI default when MLP is selected.</p>
+</dd>
+</dl>
+<p>The training history stores physical-unit RMSE and the parameter vector after
+each recorded optimizer step.</p>
+</section>
+<section id="recursive-one-step-mode">
+<h2>Recursive one-step mode<a class="headerlink" href="#recursive-one-step-mode" title="Link to this heading">¶</a></h2>
+<p>The scalar MLP is identified from one-step increments. During MPC, each
+predicted output is inserted into the output-history part of the next
+regressor. Consequently, the network is repeatedly evaluated over the
+prediction horizon:</p>
+<div class="math notranslate nohighlight">
+\[\hat y_{k+i+1|k}
+=\hat y_{k+i|k}
++s_y f_{\boldsymbol{\theta}}
+\!\left(\boldsymbol{z}_{k+i|k}\right).\]</div>
+<p>The software propagates the local input Jacobian through this recursion for
+the MPC optimizer. Because model error is fed back into later regressors,
+recursive validation is essential; a small one-step RMSE alone does not imply
+a reliable long-horizon rollout.</p>
+<p>The nonlinear local output-history diagnostic is the spectral radius of the
+companion-form Jacobian whose first row is the MLP gradient with respect to
+the <span class="math notranslate nohighlight">\(n_y\)</span> output-history coordinates. It is reported as
+<span class="math notranslate nohighlight">\(\rho(A_y)\)</span>/local output spectral radius. It is a local diagnostic, not
+a global stability guarantee.</p>
+<p>On Linux builds that enforce native execution, recursive MLP prediction and
+its Jacobian require the compiled MLP backend. The program deliberately does
+not silently fall back to Python when that backend is required. The pure
+Python Windows distribution uses its Python implementation.</p>
+</section>
+<section id="direct-multi-horizon-mode">
+<h2>Direct multi-horizon mode<a class="headerlink" href="#direct-multi-horizon-mode" title="Link to this heading">¶</a></h2>
+<p>The direct network has <span class="math notranslate nohighlight">\(N_p\)</span> outputs and predicts the complete horizon
+without feeding predicted outputs back into its own history. Candidate future
+inputs are part of the direct model input, so each MPC objective evaluation
+calls the network for the tested sequence.</p>
+<p>For MLP direct multi-horizon control, the implemented optimizer is SciPy
+<code class="docutils literal notranslate"><span class="pre">SLSQP</span></code> with bounds <code class="docutils literal notranslate"><span class="pre">u_min</span> <span class="pre">&lt;=</span> <span class="pre">u</span> <span class="pre">&lt;=</span> <span class="pre">u_max</span></code> and at most <code class="docutils literal notranslate"><span class="pre">opt_iter</span></code>
+iterations. It minimizes the same tracking, input-increment,
+second-increment and absolute-input penalties used elsewhere in MPC. This is
+why the GUI labels this mode <code class="docutils literal notranslate"><span class="pre">Direct</span> <span class="pre">multi-horizon</span> <span class="pre">+</span> <span class="pre">SLSQP</span></code>.</p>
+<p>Direct prediction avoids recursive accumulation of output-prediction error,
+but its output dimension and number of parameters grow with <span class="math notranslate nohighlight">\(N_p\)</span>, and
+a model trained for one horizon cannot be reused for a different horizon
+without retraining.</p>
+</section>
+<section id="frozen-and-sliding-retraining-operation">
+<h2>Frozen and sliding-retraining operation<a class="headerlink" href="#frozen-and-sliding-retraining-operation" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">MPC</span> <span class="pre">-</span> <span class="pre">Frozen</span> <span class="pre">Model</span></code></dt><dd><p>Identifies the MLP from the initial excitation record and keeps all MLP
+parameters and preprocessing fixed during the control run.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">MPC</span> <span class="pre">-</span> <span class="pre">Sliding</span> <span class="pre">Retraining</span></code></dt><dd><p>Rebuilds the MLP fit from the current sliding data window. The effective
+sample count is derived from <code class="docutils literal notranslate"><span class="pre">window</span> <span class="pre">length</span> <span class="pre">[s]</span></code> and <code class="docutils literal notranslate"><span class="pre">dt</span> <span class="pre">MPC</span></code> while
+respecting the history and horizon requirements. MLP weights and its
+stored preprocessing are updated by each fit.</p>
+</dd>
+</dl>
+<p>Sliding MLP retraining is substantially more expensive than the closed-form
+Ridge update used by LNU/QNU. Large networks, long windows, high epoch counts
+and direct horizons can therefore make the GUI run noticeably slower.</p>
+</section>
+<section id="mpc-objective-and-applied-action">
+<h2>MPC objective and applied action<a class="headerlink" href="#mpc-objective-and-applied-action" title="Link to this heading">¶</a></h2>
+<p>The MLP backend changes only the prediction map. The controller still
+minimizes</p>
+<div class="math notranslate nohighlight">
+\[J =
+Q\sum_{i=1}^{N_p}(\hat y_{k+i|k}-y_{\mathrm{ref},k+i})^2
++R_{\Delta u}\sum_{i=0}^{N_p-1}(\Delta u_{k+i|k})^2
++R_{\Delta^2u}\sum_{i=0}^{N_p-1}(\Delta^2u_{k+i|k})^2
++R_u\sum_{i=0}^{N_p-1}u_{k+i|k}^2.\]</div>
+<p>Only the first optimized input is applied. The remaining sequence is shifted
+and used as the warm start for the next MPC sample.</p>
+</section>
+<section id="saved-results-and-diagnostics">
+<h2>Saved results and diagnostics<a class="headerlink" href="#saved-results-and-diagnostics" title="Link to this heading">¶</a></h2>
+<p>The result files include, where applicable:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">training_epochs</span></code>, <code class="docutils literal notranslate"><span class="pre">training_rmse</span></code> and
+<code class="docutils literal notranslate"><span class="pre">training_weight_history</span></code>;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mlp_hidden_layers</span></code> and the flattened parameter vector <code class="docutils literal notranslate"><span class="pre">theta</span></code>;</p></li>
+<li><p>history means, standard deviations, PCA matrix, future-input scaling and
+<code class="docutils literal notranslate"><span class="pre">mlp_target_scale</span></code>;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">prediction_mode</span></code>, <code class="docutils literal notranslate"><span class="pre">prediction_target</span></code> and <code class="docutils literal notranslate"><span class="pre">mlp_optimizer</span></code>;</p></li>
+<li><p>local recursive spectral-radius data;</p></li>
+<li><p>direct predictions and errors by horizon, including direct RMSE and local
+sensitivity diagnostics;</p></li>
+<li><p>identification time and the complete identification configuration.</p></li>
+</ul>
+</section>
+<section id="practical-interpretation-of-the-controls">
+<h2>Practical interpretation of the controls<a class="headerlink" href="#practical-interpretation-of-the-controls" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">n_y</span></code>, <code class="docutils literal notranslate"><span class="pre">n_u</span></code></dt><dd><p>Set the output and delayed-input memory of the predictor. Larger values can
+represent slower dynamics but increase input dimension and data demand.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">MLP</span> <span class="pre">hidden</span></code></dt><dd><p>Sets hidden-layer widths. Increase only when validation indicates
+underfitting; unnecessary width increases optimization cost and variance.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">epochs</span></code></dt><dd><p>Sets the Adam/L-BFGS optimization budget for each fit. In sliding mode this
+cost is paid repeatedly.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">lambda</span></code></dt><dd><p>Sets L2 regularization of MLP weight matrices. Increasing it suppresses
+large weights but can underfit; decreasing it can improve fit while making
+the model more sensitive to limited or noisy data.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">PCA</span> <span class="pre">mode</span></code> and <code class="docutils literal notranslate"><span class="pre">PCA</span> <span class="pre">variability</span></code></dt><dd><p>Control compression of the standardized history coordinates. Excessive
+compression removes predictive information; retaining too many weak
+directions increases network size and conditioning burden.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">window</span> <span class="pre">length</span> <span class="pre">[s]</span></code></dt><dd><p>Sets the identification record for initial excitation and the retraining
+window in sliding operation. It must contain enough samples for the chosen
+memories and, in direct mode, the complete prediction horizon.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">Np</span></code></dt><dd><p>Sets both the MPC prediction horizon and the number of MLP outputs in
+direct mode. Changing it requires a new direct MLP fit.</p>
+</dd>
+</dl>
+</section>
+<section id="limitations-specific-to-mlp-mpc">
+<h2>Limitations specific to MLP MPC<a class="headerlink" href="#limitations-specific-to-mlp-mpc" title="Link to this heading">¶</a></h2>
+<p>The MLP is an empirical local predictor. The software does not impose global
+monotonicity, passivity or closed-loop stability constraints on the network.
+Extrapolation outside the identification region can therefore be unreliable.
+Input limits and soft MPC penalties do not replace plant-level safety logic.
+Recursive mode can amplify small local model errors; direct mode avoids that
+recursion but is horizon-specific and computationally heavier to train.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">SISO Adaptive Control</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Software modes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../software_overview.html">Software overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../measured_data.html">Measured-data input and processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scope_and_limitations.html">Purpose, scope and limitations</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Models and control</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../models/index.html">Plant models</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">HONU, learning methods, and GUI parameters</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="honu_models.html">Plant HONU: LNU and QNU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="learning_methods.html">HONU learning: Ridge, GD, NGD, and L-M</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mrac_architecture.html">HONU MRAC architecture and recurrent controller learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_parameters.html">HONU MRAC menu parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="honu_mpc.html">HONU MPC</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">MLP in MPC</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">HONU, learning methods, and GUI parameters</a><ul>
+      <li>Previous: <a href="honu_mpc.html" title="previous chapter">HONU MPC</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/honu/mlp_mpc.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

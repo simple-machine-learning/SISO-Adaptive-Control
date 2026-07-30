@@ -1,0 +1,1769 @@
+
+### accelerator_beam_position.rst MISSING ['vx', 'Bm', 'Fr']
+   \boldsymbol{\chi}=[x,\,v,\,m]^\mathsf{T}.
+   \begin{aligned}
+   m_{\mathrm{cmd}}&=\tanh(u) \\
+   a&=-2\zeta\omega_\beta v-\omega_\beta^2x-k_3x^3+k_m m
+   \end{aligned}
+   \begin{aligned}
+   \dot{x}&=v \\
+   \dot{v}&=a \\
+   \dot{m}&=\dfrac{m_{\mathrm{cmd}}-m}{\tau_m}
+   \end{aligned}
+TABLE:
+ 
+----------------------
+
+The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. Thus the equations remain readable while every symbol can be traced back to the implementation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 28 50
+
+   * - Mathematical notation
+     - Python name
+     - Meaning
+   * - :math:`u`
+     - ``u``
+     - Corrector-magnet command [-]
+   * - :math:`x`
+     - ``y`` / ``position``
+     - Transverse beam position [m]
+   * - :math:`vx`
+     - ``beam_velocity``
+     - Transverse beam velocity [m/s]
+   * - :math:`Bm`
+     - ``magnet_field``
+     - Corrector field [a.u.]
+   * - :math:`Fr`
+     - ``restoring_force``
+     - Effective restoring term [m/s^2]
+   * - :math:`x`
+     - ``x``
+     - Position or displacement state specified by this mechanical model.
+   * - :math:`v`
+     - ``v``
+     - Velocity state associated with the corresponding position state.
+   * - :math:`m`
+     - ``m``
+     - Microbial biomass or model-specific mass state.
+
+
+
+### accelerator_rf_cavity_amplitude.rst MISSING ['Vc']
+   \boldsymbol{\chi}=[V,\,a]^\mathsf{T}.
+   \begin{aligned}
+   a_{\mathrm{cmd}}&=\max\!\left(0,\,a_0+k_a\tanh(u)\right)
+   \end{aligned}
+   \begin{aligned}
+   \dot V&=\dfrac{-V-k_dV^3+k_c a-P_b}{\tau_c} \\
+   \dot a&=\dfrac{a_{\mathrm{cmd}}-a}{\tau_a}
+   \end{aligned}
+TABLE:
+ 
+----------------------
+
+The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. Thus the equations remain readable while every symbol can be traced back to the implementation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 28 50
+
+   * - Mathematical notation
+     - Python name
+     - Meaning
+   * - :math:`u`
+     - ``u``
+     - RF-drive command [-]
+   * - :math:`\\Delta V_c`
+     - ``y`` / ``field_deviation``
+     - Cavity-field amplitude deviation [a.u.]
+   * - :math:`Vc`
+     - ``field_amplitude``
+     - Cavity-field amplitude [a.u.]
+   * - :math:`a`
+     - ``rf_drive``
+     - RF amplifier output [a.u.]
+   * - :math:`P_b`
+     - ``beam_loading``
+     - Beam-loading term [a.u.]
+   * - :math:`k_dV^3`
+     - ``detuning_loss``
+     - Nonlinear detuning loss [a.u.]
+   * - :math:`V`
+     - ``V``
+     - RF-cavity field-amplitude state governed by the nonlinear cavity balance.
+   * - :math:`a`
+     - ``a``
+     - Actual RF-amplifier drive state following the commanded drive through first-order amplifier dynamics.
+
+
+
+### accelerator_rf_cavity_amplitude_with_delay.rst MISSING ['Vc', 'Ib', 'Ld', 'u_{d}', '\\tau_{d}']
+   \begin{aligned}
+   \tau_s &= \frac{\tau_d}{n_d}, \\
+   \dot z_1 &= \frac{u-z_1}{\tau_s}, \\
+   \dot z_i &= \frac{z_{i-1}-z_i}{\tau_s},\qquad i=2,\ldots,n_d.
+   \end{aligned}
+TABLE:
+ 
+----------------------
+
+The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. Thus the equations remain readable while every symbol can be traced back to the implementation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 28 50
+
+   * - Mathematical notation
+     - Python name
+     - Meaning
+   * - :math:`u`
+     - ``u``
+     - RF-drive command [-]
+   * - :math:`\\Delta V_c`
+     - ``y`` / ``field_deviation``
+     - Cavity-field amplitude deviation [a.u.]
+   * - :math:`Vc`
+     - ``field_amplitude``
+     - Cavity-field amplitude [a.u.]
+   * - :math:`a`
+     - ``rf_drive``
+     - RF amplifier output [a.u.]
+   * - :math:`Ib`
+     - ``beam_loading``
+     - Beam-loading term [a.u.]
+   * - :math:`Ld`
+     - ``detuning_loss``
+     - Nonlinear detuning loss [a.u.]
+   * - :math:`u_{d}`
+     - ``effective_input``
+     - Delayed effective input [-]
+   * - :math:`\tau_{d}`
+     - ``input_delay_sec``
+     - Nominal input delay [s]
+
+
+
+### bidirectional_tank_level.rst MISSING ['qp', 'qout', 'qnet']
+   \boldsymbol{\chi}=[h,\,q_p]^\mathsf{T}.
+   \begin{aligned}
+   q_{\mathrm{cmd}}&=q_0+k_p\tanh(u) \\
+   q_{\mathrm{out}}&=c_o\sqrt{\max(h,0)}
+   \end{aligned}
+   \begin{aligned}
+   \dot h&=\dfrac{q_p-q_{\mathrm{out}}}{A} \\
+   \dot q_p&=\dfrac{q_{\mathrm{cmd}}-q_p}{\tau_p}
+   \end{aligned}
+TABLE:
+ 
+----------------------
+
+The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. Thus the equations remain readable while every symbol can be traced back to the implementation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 28 50
+
+   * - Mathematical notation
+     - Python name
+     - Meaning
+   * - :math:`u`
+     - ``u``
+     - Bidirectional pump command [-]
+   * - :math:`\\Delta h`
+     - ``y`` / ``level_deviation``
+     - Tank-level deviation [m]
+   * - :math:`h`
+     - ``level``
+     - Liquid level [m]
+   * - :math:`qp`
+     - ``pump_flow``
+     - Signed pump flow [m^3/s]
+   * - :math:`qout`
+     - ``gravity_outflow``
+     - Gravity outflow [m^3/s]
+   * - :math:`qnet`
+     - ``net_flow``
+     - Net tank flow [m^3/s]
+
+
+
+### cloud_server_workload.rst MISSING ['\\mu']
+   \boldsymbol{\chi}=[x,\,c]^\mathsf{T}.
+   \begin{aligned}
+   c_{\mathrm{cmd}}&=c_0+k_c\tanh(u) \\
+   s(x,c)&=\dfrac{[c]_+[x]_+}{K_s+[x]_+} \\
+   [r]_+&=\max(r,0)
+   \end{aligned}
+   \begin{aligned}
+   \dot x&=\lambda-s(x,c)-k_a x \\
+   \dot c&=\dfrac{c_{\mathrm{cmd}}-c}{\tau_c}
+   \end{aligned}
+TABLE:
+ 
+----------------------
+
+The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. Thus the equations remain readable while every symbol can be traced back to the implementation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 28 50
+
+   * - Mathematical notation
+     - Python name
+     - Meaning
+   * - :math:`u`
+     - ``u``
+     - Compute-capacity command [-]
+   * - :math:`\\Delta \\tau`
+     - ``y`` / ``latency_deviation``
+     - Response-time deviation [s]
+   * - :math:`x`
+     - ``backlog``
+     - Pending workload [jobs]
+   * - :math:`c`
+     - ``allocated_capacity``
+     - Allocated compute capacity [jobs/s]
+   * - :math:`\mu`
+     - ``service_rate``
+     - Completed workload rate [jobs/s]
+   * - :math:`\tau`
+     - ``response_time``
+     - Response-time proxy [s]
+   * - :math:`x`
+     - ``x``
+     - Position or displacement state specified by this mechanical model.
+   * - :math:`c`
+     - ``c``
+     - Carbon or concentration state defined by the equations.
+
+
+
+### cloud_server_workload_with_delay.rst MISSING ['\\mu', 'u_{d}', '\\tau_{d}']
+   \begin{aligned}
+   \tau_s &= \frac{\tau_d}{n_d}, \\
+   \dot z_1 &= \frac{u-z_1}{\tau_s}, \\
+   \dot z_i &= \frac{z_{i-1}-z_i}{\tau_s},\qquad i=2,\ldots,n_d.
+   \end{aligned}
+TABLE:
+ 
+----------------------
+
+The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. Thus the equations remain readable while every symbol can be traced back to the implementation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 28 50
+
+   * - Mathematical notation
+     - Python name
+     - Meaning
+   * - :math:`u`
+     - ``u``
+     - Compute-capacity command [-]
+   * - :math:`\\Delta \\tau`
+     - ``y`` / ``latency_deviation``
+     - Response-time deviation [s]
+   * - :math:`x`
+     - ``backlog``
+     - Pending workload [jobs]
+   * - :math:`c`
+     - ``allocated_capacity``
+     - Allocated compute capacity [jobs/s]
+   * - :math:`\mu`
+     - ``service_rate``
+     - Completed workload rate [jobs/s]
+   * - :math:`\tau`
+     - ``response_time``
+     - Response-time proxy [s]
+   * - :math:`u_{d}`
+     - ``effective_input``
+     - Delayed effective input [-]
+   * - :math:`\tau_{d}`
+     - ``input_delay_sec``
+     - Nominal input delay [s]
+
+
+
+### cpu_thermal_fan.rst MISSING ['nf', 'Qc']
+   \boldsymbol{\chi}=[T,\,f]^\mathsf{T}.
+   \begin{aligned}
+   f_{\mathrm{cmd}}&=\operatorname{clip}\!\left(f_0-k_f\tanh(u),0,1\right) \\
+   P_\ell&=P_{\ell,0}\exp\!\left(\operatorname{clip}(\alpha_\ell(T-T_0),-5,5)\right) \\
+   Q_c&=\left(G_p+G_f[f]_+\right)(T-T_a)
+   \end{aligned}
+   \begin{aligned}
+   \dot T&=\dfrac{P_w+P_\ell-Q_c}{C_T} \\
+   \dot f&=\dfrac{f_{\mathrm{cmd}}-f}{\tau_f}
+   \end{aligned}
+TABLE:
+ 
+----------------------
+
+The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. Thus the equations remain readable while every symbol can be traced back to the implementation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 28 50
+
+   * - Mathematical notation
+     - Python name
+     - Meaning
+   * - :math:`u`
+     - ``u``
+     - Signed thermal command [-]
+   * - :math:`\\Delta T`
+     - ``y`` / ``temperature_deviation``
+     - Chip-temperature deviation [deg C]
+   * - :math:`T`
+     - ``temperature``
+     - Chip temperature [deg C]
+   * - :math:`nf`
+     - ``fan_speed``
+     - Normalized fan speed [-]
+   * - :math:`P`
+     - ``chip_power``
+     - Chip heat generation [W]
+   * - :math:`Qc`
+     - ``cooling_power``
+     - Cooling heat flow [W]
+   * - :math:`T`
+     - ``T``
+     - Temperature state; the selected temperature is returned as the controlled output.
+   * - :math:`fan`
+     - ``fan``
+     - Actual fan-command state after first-order fan dynamics.
+
+
+
+### drug_infusion_pk.rst MISSING ['C_{1}', 'C_{1}', 'C_{2}', 'Rin', 'Rel', 'C_{1}', 'C_{2}']
+   \boldsymbol{\chi}=[C_1,\,C_2,\,R]^\mathsf{T}.
+   \begin{aligned}
+   R_{\mathrm{cmd}}&=\max\!\left(0,\,R_0+k_R\tanh(u)\right) \\
+   v_e(C_1)&=\dfrac{V_{\max}C_1}{K_m+C_1}
+   \end{aligned}
+   \begin{aligned}
+   \dot C_1&=\dfrac{R-v_e(C_1)-Q(C_1-C_2)}{V_1} \\
+   \dot C_2&=\dfrac{Q(C_1-C_2)}{V_2} \\
+   \dot R&=\dfrac{R_{\mathrm{cmd}}-R}{\tau_p}
+   \end{aligned}
+TABLE:
+ 
+----------------------
+
+The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. Thus the equations remain readable while every symbol can be traced back to the implementation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 28 50
+
+   * - Mathematical notation
+     - Python name
+     - Meaning
+   * - :math:`u`
+     - ``u``
+     - Infusion command [-]
+   * - :math:`C_{1}`
+     - ``y`` / ``central_concentration_deviation``
+     - Central concentration deviation [concentration]
+   * - :math:`C_{1}`
+     - ``central_concentration``
+     - Central concentration [concentration]
+   * - :math:`C_{2}`
+     - ``peripheral_concentration``
+     - Peripheral concentration [concentration]
+   * - :math:`Rin`
+     - ``infusion_rate``
+     - Infusion rate [dose/s]
+   * - :math:`Rel`
+     - ``elimination``
+     - Elimination rate [dose/s]
+   * - :math:`C_{1}`
+     - ``C1``
+     - Central-compartment drug concentration.
+   * - :math:`C_{2}`
+     - ``C2``
+     - Peripheral-compartment drug concentration.
+   * - :math:`R`
+     - ``R``
+     - Actual infusion-rate state after pump dynamics.
+
+
+
+### drug_infusion_pkpd.rst MISSING ['C_{1}', 'C_{2}', 'Rin', 'C_{1}', 'C_{2}']
+   \boldsymbol{\chi}=[C_1,\,C_2,\,C_e,\,R,\,E]^\mathsf{T}.
+   \begin{aligned}
+   R_{\mathrm{cmd}}&=\max\!\left(0,\,R_0+k_R\tanh(u)\right) \\
+   v_e(C_1)&=\dfrac{V_{\max}C_1}{K_m+C_1} \\
+   E_{\mathrm{ss}}(C_e)&=E_0+E_{\max}\dfrac{C_e^\gamma}{EC_{50}^\gamma+C_e^\gamma}
+   \end{aligned}
+   \begin{aligned}
+   \dot C_1&=\dfrac{R-v_e(C_1)-Q(C_1-C_2)}{V_1} \\
+   \dot C_2&=\dfrac{Q(C_1-C_2)}{V_2} \\
+   \dot C_e&=k_{e0}(C_1-C_e) \\
+   \dot R&=\dfrac{R_{\mathrm{cmd}}-R}{\tau_p} \\
+   \dot E&=\dfrac{E_{\mathrm{ss}}(C_e)-E}{\tau_E}
+   \end{aligned}
+TABLE:
+ 
+----------------------
+
+The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. Thus the equations remain readable while every symbol can be traced back to the implementation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 28 50
+
+   * - Mathematical notation
+     - Python name
+     - Meaning
+   * - :math:`u`
+     - ``u``
+     - Infusion command [-]
+   * - :math:`E`
+     - ``y`` / ``effect_deviation``
+     - Pharmacodynamic effect deviation [-]
+   * - :math:`C_{1}`
+     - ``central_concentration``
+     - Central concentration [concentration]
+   * - :math:`C_{2}`
+     - ``peripheral_concentration``
+     - Peripheral concentration [concentration]
+   * - :math:`Ce`
+     - ``effect_concentration``
+     - Effect-site concentration [concentration]
+   * - :math:`Rin`
+     - ``infusion_rate``
+     - Infusion rate [dose/s]
+   * - :math:`E`
+     - ``effect``
+     - Pharmacodynamic effect [-]
+   * - :math:`C_{1}`
+     - ``C1``
+     - Central-compartment drug concentration.
+   * - :math:`C_{2}`
+     - ``C2``
+     - Peripheral-compartment drug concentration.
+   * - :math:`Ce`
+     - ``Ce``
+     - Effect-site drug concentration.
+   * - :math:`R`
+     - ``R``
+     - Actual infusion-rate state after pump dynamics.
+   * - :math:`E`
+     - ``E``
+     - Filtered pharmacodynamic effect returned as the controlled output.
+
+
+
+### glucose_insulin_bergman.rst MISSING ['Ri', 'Dm']
+   \boldsymbol{\chi}=[G,\,X,\,I,\,U,\,D]^\mathsf{T}.
+   \begin{aligned}
+   U_{\mathrm{cmd}}&=\max\!\left(0,\,U_0+k_U\dfrac{1+\tanh(u)}{2}\right) \\
+   D_{\mathrm{target}}(t)&=\begin{cases}0,&t<t_m,\\ A_m\exp(-(t-t_m)/\tau_m),&t\geq t_m.\end{cases}
+   \end{aligned}
+   \begin{aligned}
+   \dot G&=-p_1(G-G_b)-XG+D \\
+   \dot X&=-p_2X+p_3(I-I_b) \\
+   \dot I&=-n(I-I_b)+\dfrac{U}{V_I} \\
+   \dot U&=\dfrac{U_{\mathrm{cmd}}-U}{\tau_p} \\
+   \dot D&=\dfrac{D_{\mathrm{target}}(t)-D}{0.3}
+   \end{aligned}
+TABLE:
+ 
+----------------------
+
+The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. Thus the equations remain readable while every symbol can be traced back to the implementation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 28 50
+
+   * - Mathematical notation
+     - Python name
+     - Meaning
+   * - :math:`u`
+     - ``u``
+     - Insulin-infusion command [-]
+   * - :math:`G`
+     - ``y`` / ``glucose_deviation``
+     - Glucose deviation [mg/dL]
+   * - :math:`G`
+     - ``glucose``
+     - Plasma glucose [mg/dL]
+   * - :math:`I`
+     - ``insulin``
+     - Plasma insulin [mU/L]
+   * - :math:`X`
+     - ``remote_insulin_effect``
+     - Remote insulin effect [1/s]
+   * - :math:`Ri`
+     - ``infusion_rate``
+     - Insulin infusion rate [mU/s]
+   * - :math:`Dm`
+     - ``meal_disturbance``
+     - Meal disturbance [mg/dL/s]
+   * - :math:`G`
+     - ``G``
+     - Blood-glucose concentration.
+   * - :math:`X`
+     - ``X``
+     - Biomass concentration.
+   * - :math:`I`
+     - ``I``
+     - Plasma-insulin concentration.
+   * - :math:`U`
+     - ``U``
+     - Actual insulin-infusion state after pump dynamics.
+   * - :math:`D`
+     - ``D``
+     - Actual dilution-rate state after actuator dynamics.
+
+
+
+### mechanical_tuned_mass_damper.rst MISSING ['vp', 'va', 'xr', 'Fa', 'Ftmd', 'Fp', 'x_{p}', 'v_{p}', 'x_{a}', 'v_{a}']
+   \boldsymbol{\chi}=[x_p,\,v_p,\,x_a,\,v_a,\,F]^\mathsf{T}.
+   \begin{aligned}
+   F_{\mathrm{cmd}}&=F_{\max}\tanh(u) \\
+   \Delta x&=x_a-x_p,\qquad \Delta v=v_a-v_p \\
+   F_a&=k_a\Delta x+k_{a3}\Delta x^3+c_a\Delta v \\
+   F_g&=k_px_p+k_{p3}x_p^3+c_pv_p
+   \end{aligned}
+   \begin{aligned}
+   \dot x_p&=v_p \\
+   \dot v_p&=\dfrac{F-F_g+F_a}{m_p} \\
+   \dot x_a&=v_a \\
+   \dot v_a&=-\dfrac{F_a}{m_a} \\
+   \dot F&=\dfrac{F_{\mathrm{cmd}}-F}{\tau_F}
+   \end{aligned}
+TABLE:
+ 
+----------------------
+
+The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. Thus the equations remain readable while every symbol can be traced back to the implementation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 28 50
+
+   * - Mathematical notation
+     - Python name
+     - Meaning
+   * - :math:`u`
+     - ``u``
+     - Actuator-force command [-]
+   * - :math:`xp`
+     - ``y`` / ``primary_displacement``
+     - Primary-structure displacement [m]
+   * - :math:`vp`
+     - ``primary_velocity``
+     - Primary-structure velocity [m/s]
+   * - :math:`xa`
+     - ``absorber_displacement``
+     - Absorber displacement [m]
+   * - :math:`va`
+     - ``absorber_velocity``
+     - Absorber velocity [m/s]
+   * - :math:`xr`
+     - ``relative_displacement``
+     - Absorber relative displacement [m]
+   * - :math:`Fa`
+     - ``actuator_force``
+     - Actuator force [N]
+   * - :math:`Ftmd`
+     - ``absorber_force``
+     - Absorber coupling force [N]
+   * - :math:`Fp`
+     - ``primary_restoring_force``
+     - Primary restoring force [N]
+   * - :math:`x_{p}`
+     - ``x_p``
+     - Primary-body displacement state.
+   * - :math:`v_{p}`
+     - ``v_p``
+     - Primary-body velocity state.
+   * - :math:`x_{a}`
+     - ``x_a``
+     - Actuator displacement state.
+   * - :math:`v_{a}`
+     - ``v_a``
+     - Actuator velocity state.
+   * - :math:`force`
+     - ``force``
+     - Actual actuator-force state after actuator dynamics and saturation.
+
+
+
+### microgrid_frequency_bess_nonlinear.rst MISSING ['Pg', 'Pm', 'Pb', 'PL', 'xg', 'pm', 'pb']
+   \boldsymbol{\chi}=[x_g,\,p_m,\,\Delta f,\,p_b,\,SOC]^\mathsf{T}.
+   \begin{aligned}
+   \Delta f_{db}&=\begin{cases}0,&|\Delta f|\leq f_{db},\\ \Delta f-\operatorname{sgn}(\Delta f)f_{db},&|\Delta f|>f_{db},\end{cases} \\
+   a(SOC)&=\operatorname{clip}\!\left(4SOC(1-SOC),0,1\right) \\
+   p_{b,\mathrm{cmd}}&=P_{b,\max}a(SOC)\tanh(u)
+   \end{aligned}
+   \begin{aligned}
+   \dot x_g&=\dfrac{-x_g+p_{d,0}-\Delta f_{db}/R}{T_g} \\
+   \dot p_m&=\dfrac{-p_m+x_g}{T_t} \\
+   \dot{\Delta f}&=\dfrac{p_m+p_b-P_L-D\Delta f}{2H} \\
+   \dot p_b&=\dfrac{p_{b,\mathrm{cmd}}-p_b}{T_b} \\
+   \dot{SOC}&=-\dfrac{p_b}{E_b}
+   \end{aligned}
+TABLE:
+ 
+----------------------
+
+The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. Thus the equations remain readable while every symbol can be traced back to the implementation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 28 50
+
+   * - Mathematical notation
+     - Python name
+     - Meaning
+   * - :math:`u`
+     - ``u``
+     - BESS power command [-]
+   * - :math:`\\Delta f`
+     - ``y`` / ``frequency_deviation``
+     - Grid-frequency deviation [Hz]
+   * - :math:`Pg`
+     - ``governor_output``
+     - Governor output [pu]
+   * - :math:`Pm`
+     - ``diesel_power``
+     - Diesel mechanical power [pu]
+   * - :math:`Pb`
+     - ``bess_power``
+     - BESS power [pu]
+   * - :math:`z`
+     - ``state_of_charge``
+     - Battery state of charge [-]
+   * - :math:`PL`
+     - ``load_disturbance``
+     - Load disturbance [pu]
+   * - :math:`f`
+     - ``frequency_hz``
+     - Grid frequency [Hz]
+   * - :math:`xg`
+     - ``xg``
+     - Governor output state that drives the turbine mechanical-power dynamics.
+   * - :math:`pm`
+     - ``pm``
+     - Turbine mechanical-power state entering the grid power-balance equation.
+   * - :math:`df`
+     - ``df``
+     - Grid-frequency deviation; this is the controlled output returned as ``y``.
+   * - :math:`pb`
+     - ``pb``
+     - BESS power state.
+   * - :math:`soc`
+     - ``soc``
+     - Battery state of charge.
+
+
+
+### microgrid_frequency_bess_nonlinear_with_delay.rst MISSING ['Pg', 'Pm', 'Pb', 'PL', 'u_{d}', '\\tau_{d}']
+   \begin{aligned}
+   \tau_s &= \frac{\tau_d}{n_d}, \\
+   \dot z_1 &= \frac{u-z_1}{\tau_s}, \\
+   \dot z_i &= \frac{z_{i-1}-z_i}{\tau_s},\qquad i=2,\ldots,n_d.
+   \end{aligned}
+TABLE:
+ 
+----------------------
+
+The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. Thus the equations remain readable while every symbol can be traced back to the implementation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 28 50
+
+   * - Mathematical notation
+     - Python name
+     - Meaning
+   * - :math:`u`
+     - ``u``
+     - BESS power command [-]
+   * - :math:`\\Delta f`
+     - ``y`` / ``frequency_deviation``
+     - Grid-frequency deviation [Hz]
+   * - :math:`Pg`
+     - ``governor_output``
+     - Governor output [pu]
+   * - :math:`Pm`
+     - ``diesel_power``
+     - Diesel mechanical power [pu]
+   * - :math:`Pb`
+     - ``bess_power``
+     - BESS power [pu]
+   * - :math:`z`
+     - ``state_of_charge``
+     - Battery state of charge [-]
+   * - :math:`PL`
+     - ``load_disturbance``
+     - Load disturbance [pu]
+   * - :math:`f`
+     - ``frequency_hz``
+     - Grid frequency [Hz]
+   * - :math:`u_{d}`
+     - ``effective_input``
+     - Delayed effective input [-]
+   * - :math:`\tau_{d}`
+     - ``input_delay_sec``
+     - Nominal input delay [s]
+
+
+
+### microgrid_frequency_linear.rst MISSING ['Pg', 'Pm', 'PL', 'xg', 'pm']
+   \boldsymbol{\chi}=[x_g,\,p_m,\,\Delta f]^\mathsf{T}.
+   \begin{aligned}
+   \dot x_g&=\dfrac{-x_g+k_u\tanh(u)-\Delta f/R}{T_g} \\
+   \dot p_m&=\dfrac{-p_m+x_g}{T_t} \\
+   \dot{\Delta f}&=\dfrac{p_m-P_L-D\Delta f}{2H}
+   \end{aligned}
+TABLE:
+ 
+----------------------
+
+The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. Thus the equations remain readable while every symbol can be traced back to the implementation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 28 50
+
+   * - Mathematical notation
+     - Python name
+     - Meaning
+   * - :math:`u`
+     - ``u``
+     - Governor power command [-]
+   * - :math:`\\Delta f`
+     - ``y`` / ``frequency_deviation``
+     - Grid-frequency deviation [Hz]
+   * - :math:`Pg`
+     - ``governor_output``
+     - Governor output [pu]
+   * - :math:`Pm`
+     - ``mechanical_power``
+     - Diesel mechanical power [pu]
+   * - :math:`PL`
+     - ``load_disturbance``
+     - Load disturbance [pu]
+   * - :math:`f`
+     - ``frequency_hz``
+     - Grid frequency [Hz]
+   * - :math:`xg`
+     - ``xg``
+     - Governor output state that drives the turbine mechanical-power dynamics.
+   * - :math:`pm`
+     - ``pm``
+     - Turbine mechanical-power state entering the grid power-balance equation.
+   * - :math:`df`
+     - ``df``
+     - Grid-frequency deviation; this is the controlled output returned as ``y``.
+
+
+
+### network_router_fluid_queue.rst MISSING ['r_{\\\\mathrm{in}}', 'r_{\\\\mathrm{out}}', '\\\\tau_q']
+   \boldsymbol{\chi}=[q,\,r]^\mathsf{T}.
+   \begin{aligned}
+   r_{\mathrm{cmd}}&=C+k_r\tanh(u) \\
+   s(q)&=C\left[s_0+(1-s_0)\left(1-\exp\!\left(-\dfrac{[q]_+}{q_s}\right)\right)\right]
+   \end{aligned}
+   \begin{aligned}
+   \dot q&=r-s(q)-k_\ell q \\
+   \dot r&=\dfrac{r_{\mathrm{cmd}}-r}{\tau_r}
+   \end{aligned}
+TABLE:
+ 
+----------------------
+
+The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. Thus the equations remain readable while every symbol can be traced back to the implementation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 28 50
+
+   * - Mathematical notation
+     - Python name
+     - Meaning
+   * - :math:`u`
+     - ``u``
+     - Admission-rate command [-]
+   * - :math:`\\Delta q`
+     - ``y`` / ``queue_deviation``
+     - Queue occupancy deviation, :math:`\Delta q=q-q_0` [packets]
+   * - :math:`q`
+     - ``queue``
+     - Queue occupancy [packets]
+   * - :math:`r_{\\mathrm{in}}`
+     - ``admitted_rate``
+     - Admitted traffic rate [packets/s]
+   * - :math:`r_{\\mathrm{out}}`
+     - ``service_rate``
+     - Service rate [packets/s]
+   * - :math:`\\tau_q`
+     - ``delay``
+     - Queueing-delay proxy [s]
+   * - :math:`q`
+     - ``q``
+     - Queue/backlog state; this quantity determines the reported latency or queue output.
+   * - :math:`r`
+     - ``r``
+     - Actual controllable rate state after first-order actuator dynamics.
+
+
+
+### network_router_fluid_queue_with_delay.rst MISSING ['r_{\\\\mathrm{in}}', 'r_{\\\\mathrm{out}}', '\\\\tau_q', 'u_{d}', '\\tau_{d}']
+   \begin{aligned}
+   \tau_s &= \frac{\tau_d}{n_d}, \\
+   \dot z_1 &= \frac{u-z_1}{\tau_s}, \\
+   \dot z_i &= \frac{z_{i-1}-z_i}{\tau_s},\qquad i=2,\ldots,n_d.
+   \end{aligned}
+TABLE:
+ 
+----------------------
+
+The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. Thus the equations remain readable while every symbol can be traced back to the implementation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 28 50
+
+   * - Mathematical notation
+     - Python name
+     - Meaning
+   * - :math:`u`
+     - ``u``
+     - Admission-rate command [-]
+   * - :math:`\\Delta q`
+     - ``y`` / ``queue_deviation``
+     - Queue occupancy deviation, :math:`\Delta q=q-q_0` [packets]
+   * - :math:`q`
+     - ``queue``
+     - Queue occupancy [packets]
+   * - :math:`r_{\\mathrm{in}}`
+     - ``admitted_rate``
+     - Admitted traffic rate [packets/s]
+   * - :math:`r_{\\mathrm{out}}`
+     - ``service_rate``
+     - Service rate [packets/s]
+   * - :math:`\\tau_q`
+     - ``delay``
+     - Queueing-delay proxy [s]
+   * - :math:`u_{d}`
+     - ``effective_input``
+     - Delayed effective input [-]
+   * - :math:`\tau_{d}`
+     - ``input_delay_sec``
+     - Nominal input delay [s]
+
+
+
+### network_router_fluid_queue_with_large_delay.rst MISSING ['r_{\\\\mathrm{in}}', 'r_{\\\\mathrm{out}}', '\\\\tau_q', 'u_{d}', '\\tau_{d}']
+   \begin{aligned}
+   \tau_s &= \frac{\tau_d}{n_d}, \\
+   \dot z_1 &= \frac{u-z_1}{\tau_s}, \\
+   \dot z_i &= \frac{z_{i-1}-z_i}{\tau_s},\qquad i=2,\ldots,n_d.
+   \end{aligned}
+TABLE:
+ 
+----------------------
+
+The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. Thus the equations remain readable while every symbol can be traced back to the implementation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 28 50
+
+   * - Mathematical notation
+     - Python name
+     - Meaning
+   * - :math:`u`
+     - ``u``
+     - Admission-rate command [-]
+   * - :math:`\\Delta q`
+     - ``y`` / ``queue_deviation``
+     - Queue occupancy deviation, :math:`\Delta q=q-q_0` [packets]
+   * - :math:`q`
+     - ``queue``
+     - Queue occupancy [packets]
+   * - :math:`r_{\\mathrm{in}}`
+     - ``admitted_rate``
+     - Admitted traffic rate [packets/s]
+   * - :math:`r_{\\mathrm{out}}`
+     - ``service_rate``
+     - Service rate [packets/s]
+   * - :math:`\\tau_q`
+     - ``delay``
+     - Queueing-delay proxy [s]
+   * - :math:`u_{d}`
+     - ``effective_input``
+     - Delayed effective input [-]
+   * - :math:`\tau_{d}`
+     - ``input_delay_sec``
+     - Nominal input delay [s]
+
+
+
+### overhead_crane_payload_sway.rst MISSING ['xT', 'vT', 'yL', 'Fd', 'Fstop']
+   \boldsymbol{\chi}=[x,\,v,\,\theta,\,\omega,\,F]^\mathsf{T}.
+   \begin{aligned}
+   F_{\mathrm{cmd}}&=F_{\max}\tanh(u) \\
+   F_e(x,v)&=\begin{cases}0,&|x|\leq x_{\max},\\-\operatorname{sgn}(x)k_e(|x|-x_{\max})-c_ev,&|x|>x_{\max},\end{cases} \\
+   F_a&=F-c_tv+F_e(x,v) \\
+   r_1&=F_a+ml\sin\theta\,\omega^2 \\
+   r_2&=-g\sin\theta-\dfrac{c_p}{ml}\omega \\
+   \Delta&=l\left(M+m\sin^2\theta\right)
+   \end{aligned}
+   \begin{aligned}
+   \dot x&=v \\
+   \dot v&=\dfrac{lr_1-ml\cos\theta\,r_2}{\Delta} \\
+   \dot\theta&=\omega \\
+   \dot\omega&=\dfrac{(M+m)r_2-\cos\theta\,r_1}{\Delta} \\
+   \dot F&=\dfrac{F_{\mathrm{cmd}}-F}{\tau_F}
+   \end{aligned}
+TABLE:
+ 
+----------------------
+
+The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. Thus the equations remain readable while every symbol can be traced back to the implementation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 28 50
+
+   * - Mathematical notation
+     - Python name
+     - Meaning
+   * - :math:`u`
+     - ``u``
+     - Trolley-drive command [-]
+   * - :math:`xL`
+     - ``y`` / ``payload_position``
+     - Horizontal payload position [m]
+   * - :math:`xT`
+     - ``trolley_position``
+     - Trolley position [m]
+   * - :math:`vT`
+     - ``trolley_velocity``
+     - Trolley velocity [m/s]
+   * - :math:`\theta`
+     - ``sway_angle``
+     - Payload sway angle [rad]
+   * - :math:`\omega`
+     - ``sway_rate``
+     - Payload sway rate [rad/s]
+   * - :math:`yL`
+     - ``payload_vertical_position``
+     - Payload vertical position [m]
+   * - :math:`Fd`
+     - ``drive_force``
+     - Trolley drive force [N]
+   * - :math:`Fstop`
+     - ``end_stop_force``
+     - Travel-limit force [N]
+   * - :math:`x`
+     - ``x``
+     - Position or displacement state specified by this mechanical model.
+   * - :math:`v`
+     - ``v``
+     - Velocity state associated with the corresponding position state.
+   * - :math:`\theta`
+     - ``theta``
+     - Volumetric soil-moisture state.
+   * - :math:`\omega`
+     - ``omega``
+     - Angular velocity state.
+   * - :math:`force`
+     - ``force``
+     - Actual actuator-force state after actuator dynamics and saturation.
+
+
+
+### overhead_crane_payload_sway_with_delay.rst MISSING ['xT', 'vT', '\\theta', '\\omega', 'yL', 'Fd', 'Fstop', 'u_{d}', '\\tau_{d}']
+   \begin{aligned}
+   \tau_s &= \frac{\tau_d}{n_d}, \\
+   \dot z_1 &= \frac{u-z_1}{\tau_s}, \\
+   \dot z_i &= \frac{z_{i-1}-z_i}{\tau_s},\qquad i=2,\ldots,n_d.
+   \end{aligned}
+TABLE:
+ 
+----------------------
+
+The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. Thus the equations remain readable while every symbol can be traced back to the implementation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 28 50
+
+   * - Mathematical notation
+     - Python name
+     - Meaning
+   * - :math:`u`
+     - ``u``
+     - Trolley-drive command [-]
+   * - :math:`xL`
+     - ``y`` / ``payload_position``
+     - Horizontal payload position [m]
+   * - :math:`xT`
+     - ``trolley_position``
+     - Trolley position [m]
+   * - :math:`vT`
+     - ``trolley_velocity``
+     - Trolley velocity [m/s]
+   * - :math:`\theta`
+     - ``sway_angle``
+     - Payload sway angle [rad]
+   * - :math:`\omega`
+     - ``sway_rate``
+     - Payload sway rate [rad/s]
+   * - :math:`yL`
+     - ``payload_vertical_position``
+     - Payload vertical position [m]
+   * - :math:`Fd`
+     - ``drive_force``
+     - Trolley drive force [N]
+   * - :math:`Fstop`
+     - ``end_stop_force``
+     - Travel-limit force [N]
+   * - :math:`u_{d}`
+     - ``effective_input``
+     - Delayed effective input [-]
+   * - :math:`\tau_{d}`
+     - ``input_delay_sec``
+     - Nominal input delay [s]
+
+
+
+### peltier_thermal_asymmetric.rst MISSING ['Tc', 'QP', 'QJ']
+   \boldsymbol{\chi}=[T_h,\,T_c,\,I]^\mathsf{T}.
+   \begin{aligned}
+   I_{\mathrm{cmd}}&=k_I\tanh(u) \\
+   T_{h,K}&=T_h+273.15,\qquad T_{c,K}=T_c+273.15 \\
+   Q_{P,h}&=\alpha T_{h,K}I,\qquad Q_{P,c}=\alpha T_{c,K}I \\
+   Q_J&=\dfrac{1}{2}RI^2,\qquad Q_K=K(T_h-T_c)
+   \end{aligned}
+   \begin{aligned}
+   \dot T_h&=\dfrac{Q_{P,h}+Q_J-Q_K-h_h(T_h-T_a)}{C_h} \\
+   \dot T_c&=\dfrac{-Q_{P,c}+Q_J+Q_K-h_c(T_c-T_a)}{C_c} \\
+   \dot I&=\dfrac{I_{\mathrm{cmd}}-I}{\tau_I}
+   \end{aligned}
+TABLE:
+ 
+----------------------
+
+The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. Thus the equations remain readable while every symbol can be traced back to the implementation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 28 50
+
+   * - Mathematical notation
+     - Python name
+     - Meaning
+   * - :math:`u`
+     - ``u``
+     - Signed current command [-]
+   * - :math:`\\Delta T`
+     - ``y`` / ``temperature_deviation``
+     - Controlled-plate temperature deviation [deg C]
+   * - :math:`Th`
+     - ``temperature_hot``
+     - Controlled-plate temperature [deg C]
+   * - :math:`Tc`
+     - ``temperature_cold``
+     - Heat-sink temperature [deg C]
+   * - :math:`I`
+     - ``current``
+     - Peltier current [A]
+   * - :math:`QP`
+     - ``peltier_heat``
+     - Peltier heat rate [W]
+   * - :math:`QJ`
+     - ``joule_heat``
+     - Joule heat rate [W]
+
+
+
+### photobioreactor_ph_co2.rst MISSING ['CCO_{2}', 'QCO_{2}']
+   \boldsymbol{\chi}=[C,\,X,\,Q,\,I,\,pH]^\mathsf{T}.
+   \begin{aligned}
+   Q_{\mathrm{cmd}}&=Q_0+k_Q\tanh(u) \\
+   I_{\mathrm{target}}&=I_0+A_I\sin\!\left(\dfrac{2\pi t}{T_I}\right) \\
+   r_p&=v_{\max}X\dfrac{I}{K_I+I}\dfrac{C}{K_C+C} \\
+   C_g&=k_gQ \\
+   pH_{\mathrm{eq}}&=pH_0-\beta_{pH}(C-C_0) \\
+   \mu&=\mu_{\max}\dfrac{I}{K_I+I}\dfrac{C}{K_C+C}
+   \end{aligned}
+   \begin{aligned}
+   \dot C&=k_La(C_g-C)-r_p \\
+   \dot X&=(\mu-k_d)X \\
+   \dot Q&=\dfrac{Q_{\mathrm{cmd}}-Q}{\tau_Q} \\
+   \dot I&=\dfrac{I_{\mathrm{target}}-I}{0.5} \\
+   \dot{pH}&=\dfrac{pH_{\mathrm{eq}}-pH}{\tau_{pH}}
+   \end{aligned}
+TABLE:
+ 
+----------------------
+
+The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. Thus the equations remain readable while every symbol can be traced back to the implementation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 28 50
+
+   * - Mathematical notation
+     - Python name
+     - Meaning
+   * - :math:`u`
+     - ``u``
+     - CO2 dosing command [-]
+   * - :math:`pH`
+     - ``y`` / ``pH_deviation``
+     - pH deviation [pH]
+   * - :math:`pH`
+     - ``pH``
+     - pH [pH]
+   * - :math:`CCO_{2}`
+     - ``CO2``
+     - Dissolved CO2 [concentration]
+   * - :math:`X`
+     - ``biomass``
+     - Biomass concentration [concentration]
+   * - :math:`QCO_{2}`
+     - ``CO2_flow``
+     - CO2 flow [flow]
+   * - :math:`I`
+     - ``light``
+     - Light intensity [a.u.]
+   * - :math:`C`
+     - ``C``
+     - Concentration state whose physical meaning is defined by the model title and equations.
+   * - :math:`X`
+     - ``X``
+     - Biomass concentration.
+   * - :math:`Q`
+     - ``Q``
+     - Actual gas-flow or infusion-flow state after actuator dynamics.
+   * - :math:`I`
+     - ``I``
+     - Plasma-insulin concentration.
+
+
+
+### soil_carbon_priming.rst MISSING ['\\Delta R_{\\mathrm{CO_2}}', 'CL', 'CS', 'fp', 'Rco_{2}', 'cl']
+   \boldsymbol{\chi}=[C_l,\,C_s,\,B]^\mathsf{T}.
+   \begin{aligned}
+   C_l^+&=[C_l]_+,\quad C_s^+=[C_s]_+,\quad B^+=[B]_+ \\
+   r_l&=k_lB^+\dfrac{C_l^+}{K_l+C_l^++10^{-12}} \\
+   P&=1+k_p\dfrac{C_l^+}{K_p+C_l^++10^{-12}} \\
+   r_s&=k_sPB^+\dfrac{C_s^+}{K_s+C_s^++10^{-12}} \\
+   F_C&=F_0+k_F\tanh(u) \\
+   m_B&=k_mB^+
+   \end{aligned}
+   \begin{aligned}
+   \dot C_l&=F_C-r_l \\
+   \dot C_s&=-r_s \\
+   \dot B&=Y_lr_l+Y_sr_s-m_B
+   \end{aligned}
+TABLE:
+ 
+----------------------
+
+The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. Thus the equations remain readable while every symbol can be traced back to the implementation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 28 50
+
+   * - Mathematical notation
+     - Python name
+     - Meaning
+   * - :math:`u`
+     - ``u``
+     - Fresh-carbon addition command [-]
+   * - :math:`\Delta R_{\mathrm{CO_2}}`
+     - ``y`` / ``respiration_deviation``
+     - CO2-flux deviation [a.u.]
+   * - :math:`CL`
+     - ``labile_carbon``
+     - Labile carbon pool [a.u.]
+   * - :math:`CS`
+     - ``stable_carbon``
+     - Stable soil carbon pool [a.u.]
+   * - :math:`B`
+     - ``microbial_biomass``
+     - Microbial biomass [a.u.]
+   * - :math:`fp`
+     - ``priming_factor``
+     - Priming multiplier [-]
+   * - :math:`Rco_{2}`
+     - ``co2_flux``
+     - Soil CO2 flux [a.u./s]
+   * - :math:`cl`
+     - ``cl``
+     - Labile-carbon pool.
+   * - :math:`cs`
+     - ``cs``
+     - Stable-carbon pool.
+   * - :math:`b`
+     - ``b``
+     - Microbial biomass state.
+
+
+
+### soil_carbon_priming_with_delay.rst MISSING ['\\Delta R_{\\mathrm{CO_2}}', 'CL', 'CS', 'B', 'fp', 'Rco_{2}', 'u_{d}', '\\tau_{d}']
+   \begin{aligned}
+   \tau_s &= \frac{\tau_d}{n_d}, \\
+   \dot z_1 &= \frac{u-z_1}{\tau_s}, \\
+   \dot z_i &= \frac{z_{i-1}-z_i}{\tau_s},\qquad i=2,\ldots,n_d.
+   \end{aligned}
+TABLE:
+ 
+----------------------
+
+The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. Thus the equations remain readable while every symbol can be traced back to the implementation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 28 50
+
+   * - Mathematical notation
+     - Python name
+     - Meaning
+   * - :math:`u`
+     - ``u``
+     - Fresh-carbon addition command [-]
+   * - :math:`\Delta R_{\mathrm{CO_2}}`
+     - ``y`` / ``respiration_deviation``
+     - CO2-flux deviation [a.u.]
+   * - :math:`CL`
+     - ``labile_carbon``
+     - Labile carbon pool [a.u.]
+   * - :math:`CS`
+     - ``stable_carbon``
+     - Stable soil carbon pool [a.u.]
+   * - :math:`B`
+     - ``microbial_biomass``
+     - Microbial biomass [a.u.]
+   * - :math:`fp`
+     - ``priming_factor``
+     - Priming multiplier [-]
+   * - :math:`Rco_{2}`
+     - ``co2_flux``
+     - Soil CO2 flux [a.u./s]
+   * - :math:`u_{d}`
+     - ``effective_input``
+     - Delayed effective input [-]
+   * - :math:`\tau_{d}`
+     - ``input_delay_sec``
+     - Nominal input delay [s]
+
+
+
+### soil_denitrification_aeration.rst MISSING ['NO_{3}', 'O_{2}', 'rden', 'FN2O']
+   \boldsymbol{\chi}=[N,\,C,\,O]^\mathsf{T}.
+   \begin{aligned}
+   r_d&=k_d\dfrac{N^+}{K_N+N^++10^{-12}}\dfrac{C^+}{K_C+C^++10^{-12}}\dfrac{K_O}{K_O+O^++10^{-12}} \\
+   O_{\mathrm{eq}}&=\operatorname{clip}\!\left(O_0+k_O\tanh(u),0.02,1\right)
+   \end{aligned}
+   \begin{aligned}
+   \dot N&=F_N-r_d \\
+   \dot C&=F_C-r_d-k_C C^+ \\
+   \dot O&=\dfrac{O_{\mathrm{eq}}-O}{\tau_O}-0.12r_d
+   \end{aligned}
+TABLE:
+ 
+----------------------
+
+The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. Thus the equations remain readable while every symbol can be traced back to the implementation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 28 50
+
+   * - Mathematical notation
+     - Python name
+     - Meaning
+   * - :math:`u`
+     - ``u``
+     - Aeration command [-]
+   * - :math:`\\Delta F_{\\mathrm{N_2O}}`
+     - ``y`` / ``n2o_deviation``
+     - N2O-flux deviation [a.u.]
+   * - :math:`NO_{3}`
+     - ``nitrate``
+     - Nitrate pool [a.u.]
+   * - :math:`C`
+     - ``available_carbon``
+     - Available carbon [a.u.]
+   * - :math:`O_{2}`
+     - ``oxygen``
+     - Soil oxygen availability [-]
+   * - :math:`rden`
+     - ``denitrification_rate``
+     - Denitrification rate [a.u./s]
+   * - :math:`FN2O`
+     - ``n2o_flux``
+     - N2O flux [a.u./s]
+   * - :math:`n`
+     - ``n``
+     - Nitrogen pool state.
+   * - :math:`c`
+     - ``c``
+     - Carbon or concentration state defined by the equations.
+   * - :math:`o`
+     - ``o``
+     - Oxygen availability/concentration state.
+
+
+
+### soil_microbe_carbon_respiration.rst MISSING ['\\Delta R_{\\mathrm{CO_2}}', 'Cs', 'ru', 'Rco_{2}']
+   \boldsymbol{\chi}=[S,\,B]^\mathsf{T}.
+   \begin{aligned}
+   r_u&=v_{\max}B^+\dfrac{S^+}{K_S+S^++10^{-12}} \\
+   m_B&=k_mB^+ \\
+   F_S&=F_0+k_F\tanh(u)
+   \end{aligned}
+   \begin{aligned}
+   \dot S&=F_S-r_u+k_rm_B \\
+   \dot B&=Y r_u-m_B
+   \end{aligned}
+TABLE:
+ 
+----------------------
+
+The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. Thus the equations remain readable while every symbol can be traced back to the implementation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 28 50
+
+   * - Mathematical notation
+     - Python name
+     - Meaning
+   * - :math:`u`
+     - ``u``
+     - Labile-carbon addition command [-]
+   * - :math:`\Delta R_{\mathrm{CO_2}}`
+     - ``y`` / ``respiration_deviation``
+     - CO2-flux deviation [a.u.]
+   * - :math:`Cs`
+     - ``labile_carbon``
+     - Labile carbon pool [a.u.]
+   * - :math:`B`
+     - ``microbial_biomass``
+     - Microbial biomass [a.u.]
+   * - :math:`ru`
+     - ``carbon_uptake``
+     - Microbial carbon uptake [a.u./s]
+   * - :math:`Rco_{2}`
+     - ``co2_flux``
+     - Soil CO2 flux [a.u./s]
+   * - :math:`s`
+     - ``s``
+     - Substrate/resource state.
+   * - :math:`b`
+     - ``b``
+     - Microbial biomass state.
+
+
+
+### soil_microbe_cn_stoichiometry.rst MISSING ['\\Delta R_{\\mathrm{CO_2}}', 'Rco_{2}']
+   \boldsymbol{\chi}=[C,\,N,\,B]^\mathsf{T}.
+   \begin{aligned}
+   r_C&=k_CB^+\dfrac{C^+}{K_C+C^++10^{-12}} \\
+   r_N&=k_NB^+\dfrac{N^+}{K_N+N^++10^{-12}} \\
+   g&=\max\!\left(\operatorname{smin}(0.48r_C,\,\rho_{CN}r_N;\beta),0\right) \\
+   \operatorname{smin}(a,b;\beta)&=m-\dfrac{\ln(e^{-\beta(a-m)}+e^{-\beta(b-m)})}{\beta},\quad m=\min(a,b) \\
+   m_B&=k_mB^+ \\
+   F_C&=F_{C,0}+k_F\tanh(u)
+   \end{aligned}
+   \begin{aligned}
+   \dot C&=F_C-r_C+0.25m_B \\
+   \dot N&=F_N-r_N+\dfrac{0.15m_B}{\rho_{CN}} \\
+   \dot B&=g-m_B
+   \end{aligned}
+TABLE:
+ 
+----------------------
+
+The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. Thus the equations remain readable while every symbol can be traced back to the implementation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 28 50
+
+   * - Mathematical notation
+     - Python name
+     - Meaning
+   * - :math:`u`
+     - ``u``
+     - Carbon-addition command [-]
+   * - :math:`\Delta R_{\mathrm{CO_2}}`
+     - ``y`` / ``respiration_deviation``
+     - CO2-flux deviation [a.u.]
+   * - :math:`C`
+     - ``available_carbon``
+     - Available carbon [a.u.]
+   * - :math:`N`
+     - ``available_nitrogen``
+     - Available nitrogen [a.u.]
+   * - :math:`B`
+     - ``microbial_biomass``
+     - Microbial biomass [a.u.]
+   * - :math:`\\rho_{CN}`
+     - ``limitation_ratio``
+     - C-to-N limitation ratio [-]
+   * - :math:`Rco_{2}`
+     - ``co2_flux``
+     - Soil CO2 flux [a.u./s]
+   * - :math:`c`
+     - ``c``
+     - Carbon or concentration state defined by the equations.
+   * - :math:`n`
+     - ``n``
+     - Nitrogen pool state.
+   * - :math:`b`
+     - ``b``
+     - Microbial biomass state.
+
+
+
+### soil_moisture_respiration.rst MISSING ['\\Delta R_{\\mathrm{CO_2}}', 'Cs', 'Rco_{2}', 'ftheta']
+   \boldsymbol{\chi}=[\theta,\,C]^\mathsf{T}.
+   \begin{aligned}
+   I&=k_I\tanh(u) \\
+   D&=k_D[\theta-\theta_{fc}]_+^2 \\
+   a(\theta)&=\exp\!\left[-\dfrac{1}{2}\left(\dfrac{\theta-\theta_{opt}}{\sigma_\theta}\right)^2\right] \\
+   R_C&=k_cC^+a(\theta)
+   \end{aligned}
+   \begin{aligned}
+   \dot\theta&=I+k_e(\theta_0-\theta)-D \\
+   \dot C&=F_C-R_C
+   \end{aligned}
+TABLE:
+ 
+----------------------
+
+The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. Thus the equations remain readable while every symbol can be traced back to the implementation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 28 50
+
+   * - Mathematical notation
+     - Python name
+     - Meaning
+   * - :math:`u`
+     - ``u``
+     - Irrigation command [-]
+   * - :math:`\Delta R_{\mathrm{CO_2}}`
+     - ``y`` / ``respiration_deviation``
+     - CO2-flux deviation [a.u.]
+   * - :math:`\theta`
+     - ``soil_moisture``
+     - Volumetric soil moisture [-]
+   * - :math:`Cs`
+     - ``available_carbon``
+     - Available carbon [a.u.]
+   * - :math:`Rco_{2}`
+     - ``co2_flux``
+     - Soil CO2 flux [a.u./s]
+   * - :math:`ftheta`
+     - ``moisture_activity``
+     - Moisture activity factor [-]
+   * - :math:`\theta`
+     - ``theta``
+     - Volumetric soil-moisture state.
+   * - :math:`carbon`
+     - ``carbon``
+     - Soil-carbon pool state.
+
+
+
+### soil_moisture_respiration_with_delay.rst MISSING ['\\Delta R_{\\mathrm{CO_2}}', 'Cs', 'Rco_{2}', 'ftheta', 'u_{d}', '\\tau_{d}']
+   \begin{aligned}
+   \tau_s &= \frac{\tau_d}{n_d}, \\
+   \dot z_1 &= \frac{u-z_1}{\tau_s}, \\
+   \dot z_i &= \frac{z_{i-1}-z_i}{\tau_s},\qquad i=2,\ldots,n_d.
+   \end{aligned}
+TABLE:
+ 
+----------------------
+
+The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. Thus the equations remain readable while every symbol can be traced back to the implementation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 28 50
+
+   * - Mathematical notation
+     - Python name
+     - Meaning
+   * - :math:`u`
+     - ``u``
+     - Irrigation command [-]
+   * - :math:`\Delta R_{\mathrm{CO_2}}`
+     - ``y`` / ``respiration_deviation``
+     - CO2-flux deviation [a.u.]
+   * - :math:`\theta`
+     - ``soil_moisture``
+     - Volumetric soil moisture [-]
+   * - :math:`Cs`
+     - ``available_carbon``
+     - Available carbon [a.u.]
+   * - :math:`Rco_{2}`
+     - ``co2_flux``
+     - Soil CO2 flux [a.u./s]
+   * - :math:`ftheta`
+     - ``moisture_activity``
+     - Moisture activity factor [-]
+   * - :math:`u_{d}`
+     - ``effective_input``
+     - Delayed effective input [-]
+   * - :math:`\tau_{d}`
+     - ``input_delay_sec``
+     - Nominal input delay [s]
+
+
+
+### soil_nitrogen_n2o.rst MISSING ['NH_{4}', 'NO_{3}', 'O_{2}', 'rnit', 'rden', 'FN2O', 'nh_{4}', 'no_{3}', 'o_{2}']
+   \boldsymbol{\chi}=[N_{H_4},\,N_{O_3},\,O_2]^\mathsf{T}.
+   \begin{aligned}
+   r_{nit}&=k_{nit}\dfrac{N_{H_4}^+}{K_{H_4}+N_{H_4}^++10^{-12}}\dfrac{O_2^+}{K_{O_2}+O_2^++10^{-12}} \\
+   r_{den}&=k_{den}\dfrac{N_{O_3}^+}{K_{O_3}+N_{O_3}^++10^{-12}}\dfrac{K_i}{K_i+O_2^++10^{-12}} \\
+   O_{2,\mathrm{eq}}&=\operatorname{clip}\!\left(O_{2,0}+k_O\tanh(u),0.05,1\right)
+   \end{aligned}
+   \begin{aligned}
+   \dot N_{H_4}&=F_N-r_{nit}-k_LN_{H_4}^+ \\
+   \dot N_{O_3}&=r_{nit}-r_{den}-k_LN_{O_3}^+ \\
+   \dot O_2&=\dfrac{O_{2,\mathrm{eq}}-O_2}{\tau_O}-0.35r_{nit}-0.18r_{den}
+   \end{aligned}
+TABLE:
+ 
+----------------------
+
+The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. Thus the equations remain readable while every symbol can be traced back to the implementation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 28 50
+
+   * - Mathematical notation
+     - Python name
+     - Meaning
+   * - :math:`u`
+     - ``u``
+     - Soil aeration command [-]
+   * - :math:`\\Delta F_{\\mathrm{N_2O}}`
+     - ``y`` / ``n2o_deviation``
+     - N2O-flux deviation [a.u.]
+   * - :math:`NH_{4}`
+     - ``ammonium``
+     - Ammonium pool [a.u.]
+   * - :math:`NO_{3}`
+     - ``nitrate``
+     - Nitrate pool [a.u.]
+   * - :math:`O_{2}`
+     - ``oxygen``
+     - Soil oxygen availability [-]
+   * - :math:`rnit`
+     - ``nitrification_rate``
+     - Nitrification rate [a.u./s]
+   * - :math:`rden`
+     - ``denitrification_rate``
+     - Denitrification rate [a.u./s]
+   * - :math:`FN2O`
+     - ``n2o_flux``
+     - N2O flux [a.u./s]
+   * - :math:`nh_{4}`
+     - ``nh4``
+     - Ammonium concentration state.
+   * - :math:`no_{3}`
+     - ``no3``
+     - Nitrate concentration state.
+   * - :math:`o_{2}`
+     - ``o2``
+     - Dissolved oxygen concentration.
+
+
+
+### two_mass_actuator_grounded_m2_linear_viscous.rst MISSING ['y_{2}', 'y_{1}', 'v_{1}', 'v_{2}', 'F_{1}', 'F_{2}', 'Ff']
+   \boldsymbol{\chi}=[y_1,\,v_1,\,y_2,\,v_2,\,F_1,\,V_1]^\mathsf{T}.
+   \begin{aligned}
+   F_2&=k_p(y_1-y_2)+b_p(\dot y_1-\dot y_2) \\
+   F_f&=0
+   \end{aligned}
+   \begin{aligned}
+   \dot y_1&=v_1 \\
+   \dot v_1&=\dfrac{F_1-F_2-k_{g1}y_1-k_1v_1}{m_1} \\
+   \dot y_2&=v_2 \\
+   \dot v_2&=\dfrac{F_2-k_{g2}y_2-k_2v_2-F_f}{m_2} \\
+   \dot F_1&=V_1 \\
+   \dot V_1&=\omega_a^2k_au-2\zeta_a\omega_aV_1-\omega_a^2F_1
+   \end{aligned}
+TABLE:
+ 
+----------------------
+
+The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. Thus the equations remain readable while every symbol can be traced back to the implementation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 28 50
+
+   * - Mathematical notation
+     - Python name
+     - Meaning
+   * - :math:`u`
+     - ``u``
+     - Actuator command [-]
+   * - :math:`y_{2}`
+     - ``y`` / ``y2``
+     - Mass 2 displacement [m]
+   * - :math:`y_{1}`
+     - ``y1``
+     - Mass 1 displacement [m]
+   * - :math:`v_{1}`
+     - ``dy1``
+     - Mass 1 velocity [m/s]
+   * - :math:`v_{2}`
+     - ``dy2``
+     - Mass 2 velocity [m/s]
+   * - :math:`F_{1}`
+     - ``F1``
+     - Actuator force [N]
+   * - :math:`F_{2}`
+     - ``F2``
+     - Coupling force [N]
+   * - :math:`Ff`
+     - ``F_f``
+     - Viscous friction force [N]
+
+
+
+### two_mass_actuator_grounded_m2_lugre.rst MISSING ['y_{2}', 'y_{1}', 'v_{1}', 'v_{2}', 'F_{1}', 'F_{2}', 'zf', 'Ff']
+   \boldsymbol{\chi}=[y_1,\,v_1,\,y_2,\,v_2,\,F_1,\,V_1,\,z_f]^\mathsf{T}.
+   \begin{aligned}
+   F_2&=k_p(y_1-y_2)+b_p(\dot y_1-\dot y_2) \\
+   F_c&=\mu_kN,\qquad F_s=\mu_sN \\
+   g(v_2)&=\max\!\left(F_c+(F_s-F_c)\exp\!\left[-\left|\dfrac{v_2}{v_s}\right|^\alpha\right],\varepsilon_g\right) \\
+   \dot z_f&=v_2-\dfrac{\sigma_0|v_2|}{g(v_2)}z_f \\
+   F_f&=\sigma_0z_f+\sigma_1\dot z_f+\sigma_2v_2
+   \end{aligned}
+   \begin{aligned}
+   \dot y_1&=v_1 \\
+   \dot v_1&=\dfrac{F_1-F_2-k_{g1}y_1-k_1v_1}{m_1} \\
+   \dot y_2&=v_2 \\
+   \dot v_2&=\dfrac{F_2-k_{g2}y_2-k_2v_2-F_f}{m_2} \\
+   \dot F_1&=V_1 \\
+   \dot V_1&=\omega_a^2k_au-2\zeta_a\omega_aV_1-\omega_a^2F_1 \\
+   \dot z_f&=v_2-\dfrac{\sigma_0|v_2|}{g(v_2)}z_f
+   \end{aligned}
+TABLE:
+ 
+----------------------
+
+The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. Thus the equations remain readable while every symbol can be traced back to the implementation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 28 50
+
+   * - Mathematical notation
+     - Python name
+     - Meaning
+   * - :math:`u`
+     - ``u``
+     - Actuator command [-]
+   * - :math:`y_{2}`
+     - ``y`` / ``y2``
+     - Mass 2 displacement [m]
+   * - :math:`y_{1}`
+     - ``y1``
+     - Mass 1 displacement [m]
+   * - :math:`v_{1}`
+     - ``dy1``
+     - Mass 1 velocity [m/s]
+   * - :math:`v_{2}`
+     - ``dy2``
+     - Mass 2 velocity [m/s]
+   * - :math:`F_{1}`
+     - ``F1``
+     - Actuator force [N]
+   * - :math:`F_{2}`
+     - ``F2``
+     - Coupling force [N]
+   * - :math:`zf`
+     - ``z_f``
+     - LuGre internal state [m]
+   * - :math:`Ff`
+     - ``F_f``
+     - Friction force [N]
+
+
+
+### two_mass_actuator_grounded_m2_lugre2.rst MISSING ['y_{2}', 'y_{1}', 'v_{1}', 'v_{2}', 'F_{1}', 'F_{2}', 'zf', 'Ff']
+   \boldsymbol{\chi}=[y_1,\,v_1,\,y_2,\,v_2,\,F_1,\,V_1,\,z_f]^\mathsf{T}.
+   \begin{aligned}
+   F_2&=k_p(y_1-y_2)+b_p(\dot y_1-\dot y_2) \\
+   F_c&=\mu_kN,\qquad F_s=\mu_sN \\
+   g(v_2)&=\max\!\left(F_c+(F_s-F_c)\exp\!\left[-\left|\dfrac{v_2}{v_s}\right|^\alpha\right],\varepsilon_g\right) \\
+   \dot z_f&=v_2-\dfrac{\sigma_0|v_2|}{g(v_2)}z_f \\
+   F_f&=\sigma_0z_f+\sigma_1\dot z_f+\sigma_2v_2
+   \end{aligned}
+   \begin{aligned}
+   \dot y_1&=v_1 \\
+   \dot v_1&=\dfrac{F_1-F_2-k_{g1}y_1-k_1v_1}{m_1} \\
+   \dot y_2&=v_2 \\
+   \dot v_2&=\dfrac{F_2-k_{g2}y_2-k_2v_2-F_f}{m_2} \\
+   \dot F_1&=V_1 \\
+   \dot V_1&=\omega_a^2k_au-2\zeta_a\omega_aV_1-\omega_a^2F_1 \\
+   \dot z_f&=v_2-\dfrac{\sigma_0|v_2|}{g(v_2)}z_f
+   \end{aligned}
+TABLE:
+ 
+----------------------
+
+The first column gives the readable mathematical notation, the second gives the exact Python or SISO-interface name, and the third states the model-specific physical meaning. Thus the equations remain readable while every symbol can be traced back to the implementation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 28 50
+
+   * - Mathematical notation
+     - Python name
+     - Meaning
+   * - :math:`u`
+     - ``u``
+     - Actuator command [-]
+   * - :math:`y_{2}`
+     - ``y`` / ``y2``
+     - Mass 2 displacement [m]
+   * - :math:`y_{1}`
+     - ``y1``
+     - Mass 1 displacement [m]
+   * - :math:`v_{1}`
+     - ``dy1``
+     - Mass 1 velocity [m/s]
+   * - :math:`v_{2}`
+     - ``dy2``
+     - Mass 2 velocity [m/s]
+   * - :math:`F_{1}`
+     - ``F1``
+     - Actuator force [N]
+   * - :math:`F_{2}`
+     - ``F2``
+     - Coupling force [N]
+   * - :math:`zf`
+     - ``z_f``
+     - LuGre internal state [m]
+   * - :math:`Ff`
+     - ``F_f``
+     - Friction force [N]
+
+

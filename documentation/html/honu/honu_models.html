@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Plant HONU: LNU and QNU &#8212; SISO Adaptive Control  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=12dfc556" />
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="HONU learning: Ridge, GD, NGD, and L-M" href="learning_methods.html" />
+    <link rel="prev" title="HONU, learning methods, and GUI parameters" href="index.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="plant-honu-lnu-and-qnu">
+<h1>Plant HONU: LNU and QNU<a class="headerlink" href="#plant-honu-lnu-and-qnu" title="Link to this heading">¶</a></h1>
+<section id="purpose-of-the-plant-honu">
+<h2>Purpose of the plant HONU<a class="headerlink" href="#purpose-of-the-plant-honu" title="Link to this heading">¶</a></h2>
+<p>The plant HONU is a discrete-time, data-driven approximation of the controlled
+SISO plant. It is not the physical ODE model itself. It maps a finite history of
+measured outputs and delayed inputs to the next output sample and is subsequently
+used as the differentiable plant model during MRAC-controller training and as the
+prediction model in HONU MPC.</p>
+<p>All identification and controller training are performed in normalized
+coordinates. Physical units are recovered only for presentation and physical-ODE
+validation. With the sampling period <span class="math notranslate nohighlight">\(T_s=\mathtt{dt}\)</span> and the input delay</p>
+<div class="math notranslate nohighlight">
+\[n_{u,1}=\left\lfloor\frac{\tau_u}{T_s}\right\rfloor,\]</div>
+<p>an autoregressive plant regressor is formed as</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{x}(k)=
+\begin{bmatrix}
+1 &amp; y(k-1) &amp; \cdots &amp; y(k-n_y) &amp;
+u(k-n_{u,1}-1) &amp; \cdots &amp; u(k-n_{u,1}-n_u)
+\end{bmatrix}^{\mathsf T}.\]</div>
+<p>The constant element is included in the current batch models and controller-
+training models. Some legacy GD/NGD scripts use the unbiased form without the
+constant element; the saved-file metadata and selected script therefore remain
+part of the model definition.</p>
+</section>
+<section id="lnu-plant-model">
+<h2>LNU plant model<a class="headerlink" href="#lnu-plant-model" title="Link to this heading">¶</a></h2>
+<p>The linear neural unit uses the original regressor as its feature vector,</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\phi}_{L}(k)=\boldsymbol{x}(k),
+\qquad
+\hat y(k)=\boldsymbol{w}^{\mathsf T}\boldsymbol{\phi}_{L}(k).\]</div>
+<p>Partitioning the weight vector into the bias, output-memory and input-memory
+parts gives</p>
+<div class="math notranslate nohighlight">
+\[\hat y(k)=w_0+
+\sum_{i=1}^{n_y}w_{y,i}y(k-i)+
+\sum_{j=1}^{n_u}w_{u,j}u(k-n_{u,1}-j).\]</div>
+<p>Thus the LNU is a finite-order ARX-like model that is linear in both its
+parameters and regressors. It can represent offsets, local linear dynamics,
+finite input delay and finite memory. It cannot directly represent products,
+squares or operating-point-dependent gains unless these effects are encoded by
+the input data or by additional regressors.</p>
+<p>For <span class="math notranslate nohighlight">\(n_x=1+n_y+n_u\)</span>, the LNU contains <span class="math notranslate nohighlight">\(n_w=n_x\)</span> weights. The
+recursive autonomous output part can be written using the companion state</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{y}_k=
+\begin{bmatrix}\hat y(k)&amp;\hat y(k-1)&amp;\cdots&amp;\hat y(k-n_y+1)\end{bmatrix}^{\mathsf T},\]</div>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{y}_{k+1}=\boldsymbol{A}_y\boldsymbol{y}_k+
+\boldsymbol{b}_u(k),\]</div>
+<p>where</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\boldsymbol{A}_y=
+\begin{bmatrix}
+w_{y,1}&amp;w_{y,2}&amp;\cdots&amp;w_{y,n_y}\\
+1&amp;0&amp;\cdots&amp;0\\
+0&amp;1&amp;\ddots&amp;\vdots\\
+\vdots&amp;\ddots&amp;\ddots&amp;0
+\end{bmatrix}.\end{split}\]</div>
+<p>For fixed weights, <span class="math notranslate nohighlight">\(\rho(\boldsymbol{A}_y)&lt;1\)</span> is the usual discrete-time
+local pole condition for the autonomous LNU model. During GD/NGD learning the
+matrix varies with <span class="math notranslate nohighlight">\(k\)</span>; its spectral radius is therefore a frozen-time
+stability diagnostic, not a global proof for the complete adaptive loop.</p>
+</section>
+<section id="qnu-plant-model">
+<h2>QNU plant model<a class="headerlink" href="#qnu-plant-model" title="Link to this heading">¶</a></h2>
+<p>The quadratic neural unit applies all non-redundant second-order monomials to
+the regressor. Let</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{P}=\{(i,j)\,|\,0\le i\le j&lt;n_x\}.\]</div>
+<p>The QNU feature vector and prediction are</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\phi}_{Q}(k)
+=\left[x_i(k)x_j(k)\right]_{(i,j)\in\mathcal{P}},
+\qquad
+\hat y(k)=\boldsymbol{w}^{\mathsf T}\boldsymbol{\phi}_{Q}(k).\]</div>
+<p>Because <span class="math notranslate nohighlight">\(x_0=1\)</span>, this single upper-triangular basis contains the constant
+term, all linear terms and all quadratic interactions. In scalar form,</p>
+<div class="math notranslate nohighlight">
+\[\hat y(k)=
+w_{00}+
+\sum_{i=1}^{n_x-1}w_{0i}x_i(k)+
+\sum_{i=1}^{n_x-1}\sum_{j=i}^{n_x-1}w_{ij}x_i(k)x_j(k).\]</div>
+<p>The number of trainable weights is</p>
+<div class="math notranslate nohighlight">
+\[n_w=\frac{n_x(n_x+1)}{2}.\]</div>
+<p>A QNU can represent quadratic static nonlinearities, cross-products between
+past outputs and inputs, amplitude-dependent gains and a second-order local
+Volterra-like approximation. Its parameter count grows quadratically with
+regressor dimension, so collinearity, scaling and extrapolation become more
+critical than for an LNU.</p>
+<p>The exact feature derivative needed by recurrent controller learning and MPC is
+straightforward. For one feature <span class="math notranslate nohighlight">\(\phi_{ij}=x_i x_j\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial\phi_{ij}}{\partial\boldsymbol{x}}
+=x_j\boldsymbol{e}_i+x_i\boldsymbol{e}_j,\]</div>
+<p>with the diagonal case naturally giving
+<span class="math notranslate nohighlight">\(\partial x_i^2/\partial x_i=2x_i\)</span>. Consequently,</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial\hat y}{\partial\boldsymbol{x}}
+=\boldsymbol{w}^{\mathsf T}
+\frac{\partial\boldsymbol{\phi}_{Q}}
+{\partial\boldsymbol{x}}.\]</div>
+<p>This derivative propagates through delayed outputs and inputs and is the basis
+of the exact local sensitivities used in controller training and prediction
+optimization.</p>
+</section>
+<section id="requirements-on-identification-trajectories">
+<h2>Requirements on identification trajectories<a class="headerlink" href="#requirements-on-identification-trajectories" title="Link to this heading">¶</a></h2>
+<p>The plant HONU can only be identified from trajectories that remain bounded
+and operationally admissible. For an open-loop unstable plant, data acquisition
+must therefore be performed under an independent stabilizing controller. The
+training record must sufficiently excite the relevant dynamics while remaining
+inside actuator, sensor and physical operating limits.</p>
+<p>The learned mapping is data-supported rather than global. It is valid
+primarily for amplitudes, rates, delays and operating conditions represented in
+the training record. LNU provides a local linear dynamic approximation, while
+QNU can capture moderate quadratic nonlinearities and interactions within the
+same covered region. Neither model should be treated as a reliable extrapolator
+for strongly nonlinear, discontinuous or previously unobserved regimes.</p>
+</section>
+<section id="identification-problem">
+<h2>Identification problem<a class="headerlink" href="#identification-problem" title="Link to this heading">¶</a></h2>
+<p>For <span class="math notranslate nohighlight">\(N\)</span> valid samples, stack the feature rows into</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\boldsymbol{\Phi}=
+\begin{bmatrix}
+\boldsymbol{\phi}^{\mathsf T}(k_1)\\
+\vdots\\
+\boldsymbol{\phi}^{\mathsf T}(k_N)
+\end{bmatrix},
+\qquad
+\boldsymbol{y}=
+\begin{bmatrix}y(k_1)&amp;\cdots&amp;y(k_N)\end{bmatrix}^{\mathsf T}.\end{split}\]</div>
+<p>The one-step prediction error and least-squares objective are</p>
+<div class="math notranslate nohighlight">
+\[e(k)=y(k)-\hat y(k),
+\qquad
+E(\boldsymbol{w})=\frac{1}{2}\sum_{k}e^2(k)
+=\frac{1}{2}\left\|\boldsymbol{y}-\boldsymbol{\Phi}\boldsymbol{w}\right\|_2^2.\]</div>
+<p>Both LNU and QNU are nonlinear in their input variables but linear in their
+weights. Therefore batch Ridge has a direct solution, while GD, NGD and L-M are
+alternative numerical learning procedures for the same linear-in-parameters
+identification problem. Their detailed derivations are given in
+<a class="reference internal" href="learning_methods.html"><span class="doc">HONU learning: Ridge, GD, NGD, and L-M</span></a>.</p>
+</section>
+<section id="plant-model-use-and-validation">
+<h2>Plant-model use and validation<a class="headerlink" href="#plant-model-use-and-validation" title="Link to this heading">¶</a></h2>
+<p>A low one-step RMSE is necessary but not sufficient for recursive simulation or
+control. The identified model must also be evaluated in free-run recursion,
+under the intended reference range and with the same delay and normalization
+used during training. The project therefore reports prediction error together
+with local update-map and output-recursion spectral-radius diagnostics.</p>
+<p>The plant HONU is trained from module-01 data, the controller is trained against
+that fixed learned plant in module 03, and the final controller is validated
+against the original physical ODE plant in module 04. For measured data, the
+same distinction applies: controller training regulates the learned HONU
+approximation, not an unobserved future physical experiment.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">SISO Adaptive Control</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Software modes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../software_overview.html">Software overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../measured_data.html">Measured-data input and processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scope_and_limitations.html">Purpose, scope and limitations</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Models and control</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../models/index.html">Plant models</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">HONU, learning methods, and GUI parameters</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Plant HONU: LNU and QNU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="learning_methods.html">HONU learning: Ridge, GD, NGD, and L-M</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mrac_architecture.html">HONU MRAC architecture and recurrent controller learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_parameters.html">HONU MRAC menu parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="honu_mpc.html">HONU MPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mlp_mpc.html">MLP in MPC</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">HONU, learning methods, and GUI parameters</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">HONU, learning methods, and GUI parameters</a></li>
+      <li>Next: <a href="learning_methods.html" title="next chapter">HONU learning: Ridge, GD, NGD, and L-M</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/honu/honu_models.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

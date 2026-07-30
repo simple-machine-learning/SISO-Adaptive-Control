@@ -1,0 +1,9 @@
+numpy
+matplotlib
+PySide6
+pyqtgraph
+scipy
+h5py
+pandas
+openpyxl
+sphinx

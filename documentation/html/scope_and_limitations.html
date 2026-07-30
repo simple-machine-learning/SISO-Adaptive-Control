@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Purpose, scope and limitations &#8212; SISO Adaptive Control  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Plant models" href="models/index.html" />
+    <link rel="prev" title="Measured-data input and processing" href="measured_data.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="purpose-scope-and-limitations">
+<h1>Purpose, scope and limitations<a class="headerlink" href="#purpose-scope-and-limitations" title="Link to this heading">¶</a></h1>
+<section id="purpose-of-the-software">
+<h2>Purpose of the software<a class="headerlink" href="#purpose-of-the-software" title="Link to this heading">¶</a></h2>
+<p>The software is a research and teaching environment for reproducible
+experiments with SISO nonlinear plants, higher-order neural units (HONU),
+model-reference adaptive control (MRAC) and HONU-based model predictive
+control (MPC).  Its main purpose is to study</p>
+<ul class="simple">
+<li><p>simulation of selected continuous-time physical ODE models,</p></li>
+<li><p>generation of identification data,</p></li>
+<li><p>LNU and QNU approximation of sampled plant dynamics,</p></li>
+<li><p>comparison of Ridge, Levenberg–Marquardt, GD and NGD learning procedures,</p></li>
+<li><p>frozen and sliding-window prediction models,</p></li>
+<li><p>PCA reduction of HONU regressors,</p></li>
+<li><p>reference-model tracking, prediction accuracy and local numerical
+diagnostics.</p></li>
+</ul>
+<p>The project should therefore be interpreted as an experimental simulation
+framework.  It is not a complete industrial control system, a safety layer or
+a certified plant controller.</p>
+</section>
+<section id="meaning-of-the-common-siso-interface">
+<h2>Meaning of the common SISO interface<a class="headerlink" href="#meaning-of-the-common-siso-interface" title="Link to this heading">¶</a></h2>
+<p>Every physical model is exposed through one scalar plant input <code class="docutils literal notranslate"><span class="pre">u</span></code> and one
+scalar controlled output <code class="docutils literal notranslate"><span class="pre">y</span></code>.  Their physical meanings and units depend on
+the selected ODE model and are documented on the corresponding model page.
+The common names only provide a uniform software interface; they do not imply
+that all models have comparable amplitudes, admissible ranges or actuator
+capabilities.</p>
+<p>The command signal <code class="docutils literal notranslate"><span class="pre">d</span></code> is processed by the selected reference model to form
+<code class="docutils literal notranslate"><span class="pre">y_ref</span></code>.  The controller attempts to make <code class="docutils literal notranslate"><span class="pre">y</span></code> follow <code class="docutils literal notranslate"><span class="pre">y_ref</span></code>.  This does
+not guarantee that <code class="docutils literal notranslate"><span class="pre">d</span></code>, <code class="docutils literal notranslate"><span class="pre">y_ref</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code> or <code class="docutils literal notranslate"><span class="pre">u</span></code> remain inside physically
+admissible operating regions.</p>
+</section>
+<section id="stability-and-admissible-identification-data">
+<h2>Stability and admissible identification data<a class="headerlink" href="#stability-and-admissible-identification-data" title="Link to this heading">¶</a></h2>
+<p>The software is primarily intended for plants that are open-loop stable or
+already stabilized by an independent feedback controller, such as a PID
+controller. This requirement applies to both simulated and measured data. The
+HONU plant model is trained from sampled input-output trajectories; therefore,
+all relevant signals must remain bounded and the plant must stay within a safe
+operating region during the complete data-acquisition experiment.</p>
+<p>For an open-loop unstable physical plant, identification data should be
+collected only while an independent stabilizing controller is active. In that
+configuration, the learned HONU model represents the dynamics visible in the
+selected input-output channels under the stabilizing feedback. Depending on
+the signal definitions, this may be the pre-stabilized closed-loop system
+rather than the uncontrolled physical plant itself.</p>
+<p>MRAC or MPC may subsequently be used to improve the behaviour of this stable
+or pre-stabilized system, for example by improving reference tracking,
+disturbance rejection, transient response, control smoothness or control
+effort. The current implementation must not be interpreted as a general method
+for safely identifying or stabilizing an arbitrary uncontrolled unstable
+plant.</p>
+<p>The LNU and QNU models can approximate linear and moderately nonlinear
+input-output dynamics within the region represented by the training data. A
+QNU extends local expressiveness through quadratic terms, but it does not
+remove the locality of data-driven identification. Strong nonlinearities,
+discontinuities, switching behaviour, substantial hysteresis, severe
+saturation or operation outside the training domain can invalidate the learned
+prediction model. No global nonlinear stability guarantee is implied.</p>
+</section>
+<section id="what-the-software-does-not-solve">
+<h2>What the software does not solve<a class="headerlink" href="#what-the-software-does-not-solve" title="Link to this heading">¶</a></h2>
+<p>The current implementation does not provide a general treatment of the
+following practical control aspects.</p>
+<section id="actuator-saturation-and-anti-windup">
+<h3>Actuator saturation and anti-windup<a class="headerlink" href="#actuator-saturation-and-anti-windup" title="Link to this heading">¶</a></h3>
+<p>The controller output is not generally constrained by physical actuator
+limits.  In particular, the menu values <code class="docutils literal notranslate"><span class="pre">u_min</span></code> and <code class="docutils literal notranslate"><span class="pre">u_max</span></code> define the
+excitation range used for ODE-data generation and initial identification.
+They do <strong>not</strong> clip the MRAC or MPC control signal during closed-loop
+operation unless a particular model or module explicitly implements an
+additional limitation.</p>
+<p>Consequently, changing <code class="docutils literal notranslate"><span class="pre">u_min</span></code> or <code class="docutils literal notranslate"><span class="pre">u_max</span></code> may change the identification
+data and the operating region represented by the learned model, while having
+no direct limiting effect on the subsequently computed control signal <code class="docutils literal notranslate"><span class="pre">u</span></code>.
+The closed-loop algorithm can therefore request values that are unavailable,
+unsafe or outside the range used for identification.</p>
+<p>No general actuator-saturation model, rate limiter, dead zone, hysteresis or
+anti-windup mechanism is included.  The absence of anti-windup is particularly
+important when an external user adds saturation around an adaptive or
+integrating control structure: the internal controller state or adaptive
+parameters can continue to evolve although the physical actuator can no
+longer follow the requested input.</p>
+</section>
+<section id="active-physical-operating-ranges">
+<h3>Active physical operating ranges<a class="headerlink" href="#active-physical-operating-ranges" title="Link to this heading">¶</a></h3>
+<p>The software does not automatically determine or enforce the actual active
+range of plant states, outputs, inputs or internal physical variables.  A
+simulation can therefore enter a region where</p>
+<ul class="simple">
+<li><p>the ODE model is no longer physically credible,</p></li>
+<li><p>parameters identified around one operating point are no longer valid,</p></li>
+<li><p>a HONU model extrapolates outside its training domain,</p></li>
+<li><p>state variables become negative although the represented quantity should be
+non-negative,</p></li>
+<li><p>thermal, mechanical, biological, electrical or pharmacological limits are
+violated.</p></li>
+</ul>
+<p>The displayed trajectories are numerical simulation results, not a proof that
+the corresponding operation is feasible for a real plant.  The user must
+select excitation, command ranges, initial conditions and reference-model
+speed consistently with the physical interpretation of the chosen model.</p>
+</section>
+<section id="constraint-handling">
+<h3>Constraint handling<a class="headerlink" href="#constraint-handling" title="Link to this heading">¶</a></h3>
+<p>The current HONU MPC formulation penalizes tracking error, absolute input and
+input differences through <code class="docutils literal notranslate"><span class="pre">q_track</span></code>, <code class="docutils literal notranslate"><span class="pre">r_u</span></code>, <code class="docutils literal notranslate"><span class="pre">r_du</span></code> and <code class="docutils literal notranslate"><span class="pre">r_ddu</span></code>.  These
+terms are soft quadratic penalties.  They are not hard constraints and do not
+guarantee</p>
+<ul class="simple">
+<li><p>input bounds,</p></li>
+<li><p>input-rate bounds,</p></li>
+<li><p>output bounds,</p></li>
+<li><p>state bounds,</p></li>
+<li><p>terminal constraints,</p></li>
+<li><p>invariant-set conditions,</p></li>
+<li><p>recursive feasibility.</p></li>
+</ul>
+<p>A large <code class="docutils literal notranslate"><span class="pre">r_u</span></code> can reduce the magnitude of <code class="docutils literal notranslate"><span class="pre">u</span></code> and large <code class="docutils literal notranslate"><span class="pre">r_du</span></code> or
+<code class="docutils literal notranslate"><span class="pre">r_ddu</span></code> can smooth it, but none of these weights replaces explicit actuator
+or state constraints.</p>
+</section>
+<section id="closed-loop-stability-and-robustness">
+<h3>Closed-loop stability and robustness<a class="headerlink" href="#closed-loop-stability-and-robustness" title="Link to this heading">¶</a></h3>
+<p>Local quantities such as prediction RMSE, spectral radii or
+<span class="math notranslate nohighlight">\(\rho(A_y)\)</span> are diagnostics of a fitted local model or update map.  They
+are not, by themselves, a proof of global nonlinear closed-loop stability,
+robustness or boundedness of all signals.</p>
+<p>The software does not provide a general proof or guarantee of</p>
+<ul class="simple">
+<li><p>global asymptotic stability,</p></li>
+<li><p>input-to-state stability,</p></li>
+<li><p>robust stability under model uncertainty,</p></li>
+<li><p>robustness margins against delay mismatch,</p></li>
+<li><p>guaranteed BIBS stability of the complete adaptive closed loop,</p></li>
+<li><p>safe convergence of online or sliding-window adaptation.</p></li>
+</ul>
+<p>A successful simulation for one seed, command sequence or parameter set must
+not be generalized automatically to other operating conditions.</p>
+</section>
+<section id="noise-disturbances-and-unmodelled-dynamics">
+<h3>Noise, disturbances and unmodelled dynamics<a class="headerlink" href="#noise-disturbances-and-unmodelled-dynamics" title="Link to this heading">¶</a></h3>
+<p>Unless explicitly introduced by the selected model or experiment, the
+software does not reproduce the full sensor, actuator and environmental
+uncertainty of a real system.  It does not automatically account for sensor
+bias, quantization, packet loss, asynchronous sampling, actuator dynamics,
+measurement filtering, unknown disturbances or structural model error.</p>
+<p>Identification quality can degrade when the training data are insufficiently
+exciting, noisy, strongly correlated or restricted to a narrow operating
+range.  Low training error does not guarantee accurate multi-step prediction
+or closed-loop performance.</p>
+</section>
+<section id="real-time-implementation">
+<h3>Real-time implementation<a class="headerlink" href="#real-time-implementation" title="Link to this heading">¶</a></h3>
+<p>The simulation uses desktop Python execution.  It does not guarantee that the
+selected ODE integration, sliding retraining or MPC optimization can finish
+within <code class="docutils literal notranslate"><span class="pre">dt_control</span></code> on a target real-time platform.  Computational timing,
+missed deadlines, numerical precision, communication delays and hardware
+interfaces must be evaluated separately.</p>
+</section>
+<section id="safety-and-application-specific-supervision">
+<h3>Safety and application-specific supervision<a class="headerlink" href="#safety-and-application-specific-supervision" title="Link to this heading">¶</a></h3>
+<p>No emergency shutdown, fault detection, watchdog, supervisory state machine,
+redundancy, validation monitor or safety interlock is supplied.  Models
+related to biomedical, energy, mechanical or infrastructure systems are
+illustrative simulation models and must not be used directly for safety-
+critical decisions, treatment or equipment operation.</p>
+</section>
+</section>
+<section id="interpretation-of-results">
+<h2>Interpretation of results<a class="headerlink" href="#interpretation-of-results" title="Link to this heading">¶</a></h2>
+<p>The software is appropriate for comparing algorithms under explicitly stated
+simulation assumptions.  A result should always be reported together with</p>
+<ul class="simple">
+<li><p>the physical model and its parameters,</p></li>
+<li><p>definitions and units of <code class="docutils literal notranslate"><span class="pre">u</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code>,</p></li>
+<li><p>initial conditions,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dt_sim</span></code> and <code class="docutils literal notranslate"><span class="pre">dt_control</span></code>,</p></li>
+<li><p>excitation and command ranges,</p></li>
+<li><p>identification interval and learning method,</p></li>
+<li><p>HONU type and regressor orders,</p></li>
+<li><p>PCA settings,</p></li>
+<li><p>controller settings,</p></li>
+<li><p>random seed,</p></li>
+<li><p>any externally added saturation or constraint handling.</p></li>
+</ul>
+<p>Before applying an algorithm to a real plant, the missing practical layers
+must be designed explicitly.  These normally include physical range checks,
+actuator and rate constraints, anti-windup, state and output constraints,
+noise filtering, disturbance handling, fault supervision, real-time timing
+verification and an application-specific stability and safety analysis.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">SISO Adaptive Control</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Software modes</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="software_overview.html">Software overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="measured_data.html">Measured-data input and processing</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Purpose, scope and limitations</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#purpose-of-the-software">Purpose of the software</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#meaning-of-the-common-siso-interface">Meaning of the common SISO interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#stability-and-admissible-identification-data">Stability and admissible identification data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#what-the-software-does-not-solve">What the software does not solve</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#interpretation-of-results">Interpretation of results</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Models and control</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="models/index.html">Plant models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="honu/index.html">HONU, learning methods, and GUI parameters</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="measured_data.html" title="previous chapter">Measured-data input and processing</a></li>
+      <li>Next: <a href="models/index.html" title="next chapter">Plant models</a></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="_sources/scope_and_limitations.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

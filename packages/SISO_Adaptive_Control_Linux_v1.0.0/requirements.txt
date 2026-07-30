@@ -1,0 +1,14 @@
+numpy
+matplotlib
+PySide6
+pyqtgraph
+scipy
+h5py
+pandas
+openpyxl
+sphinx
+setuptools
+
+Cython>=3.0
+
+numba>=0.61

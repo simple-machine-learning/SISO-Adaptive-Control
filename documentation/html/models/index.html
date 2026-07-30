@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Plant models &#8212; SISO Adaptive Control  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=12dfc556" />
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Accelerator: RF cavity amplitude" href="accelerator_rf_cavity_amplitude.html" />
+    <link rel="prev" title="Purpose, scope and limitations" href="../scope_and_limitations.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="plant-models">
+<h1>Plant models<a class="headerlink" href="#plant-models" title="Link to this heading">¶</a></h1>
+<p>Each page gives the physical differential equations, default parameters, input <code class="docutils literal notranslate"><span class="pre">u</span></code>, controlled output <code class="docutils literal notranslate"><span class="pre">y</span></code> and the corresponding Python implementation. The contents below intentionally lists only model names.</p>
+<section id="mathematical-notation">
+<h2>Mathematical notation<a class="headerlink" href="#mathematical-notation" title="Link to this heading">¶</a></h2>
+<p>Throughout the model documentation, scalar quantities are written as italic lowercase symbols, vectors and one-dimensional arrays as bold lowercase symbols, and matrices or tensors as bold uppercase symbols. Thus <span class="math notranslate nohighlight">\(x\)</span>, <span class="math notranslate nohighlight">\(u\)</span>, and <span class="math notranslate nohighlight">\(y\)</span> are scalars; <span class="math notranslate nohighlight">\(\mathbf{x}\)</span> is a state vector; and <span class="math notranslate nohighlight">\(\mathbf{A}\)</span> is a matrix. Individual vector components remain scalar, for example <span class="math notranslate nohighlight">\(x_i\)</span>.</p>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Models</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="accelerator_rf_cavity_amplitude.html">Accelerator: RF cavity amplitude</a></li>
+<li class="toctree-l1"><a class="reference internal" href="accelerator_rf_cavity_amplitude_with_delay.html">Accelerator: RF cavity amplitude with delay</a></li>
+<li class="toctree-l1"><a class="reference internal" href="accelerator_beam_position.html">Accelerator: transverse beam position</a></li>
+<li class="toctree-l1"><a class="reference internal" href="glucose_insulin_bergman.html">Biomedical: glucose-insulin model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="drug_infusion_pk.html">Biomedical: nonlinear drug PK</a></li>
+<li class="toctree-l1"><a class="reference internal" href="drug_infusion_pkpd.html">Biomedical: nonlinear drug PK-PD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bioreactor_dissolved_oxygen.html">Bioprocess: dissolved oxygen bioreactor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chemostat_monod_biomass.html">Bioprocess: Monod chemostat biomass</a></li>
+<li class="toctree-l1"><a class="reference internal" href="photobioreactor_ph_co2.html">Bioprocess: photobioreactor pH / CO2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quadrotor_altitude.html">Drone: quadrotor altitude</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quadrotor_roll.html">Drone: quadrotor roll</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cloud_server_workload.html">IT: cloud-server workload</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cloud_server_workload_with_delay.html">IT: cloud-server workload with delay</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cpu_thermal_fan.html">IT: CPU thermal control by fan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overhead_crane_payload_sway.html">Mechanical: overhead crane payload sway</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overhead_crane_payload_sway_with_delay.html">Mechanical: overhead crane payload sway with delay</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mechanical_tuned_mass_damper.html">Mechanical: tuned mass vibration absorber</a></li>
+<li class="toctree-l1"><a class="reference internal" href="voice_coil_servo.html">Mechanical: voice-coil servo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="two_mass_actuator_grounded_m2_lugre.html">Mechanical: two masses, LuGre friction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="two_mass_actuator_grounded_m2_lugre2.html">Mechanical: two masses, LuGre friction 2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="two_mass_actuator_grounded_m2_linear_viscous.html">Mechanical: two masses, viscous damping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network_router_fluid_queue.html">Network: nonlinear router fluid queue</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network_router_fluid_queue_with_delay.html">Network: router fluid queue with delay</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network_router_fluid_queue_with_large_delay.html">Network: router fluid queue with large delay</a></li>
+<li class="toctree-l1"><a class="reference internal" href="microgrid_frequency_linear.html">Power grid: linear microgrid frequency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="microgrid_frequency_bess_nonlinear.html">Power grid: nonlinear BESS microgrid frequency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="microgrid_frequency_bess_nonlinear_with_delay.html">Power grid: nonlinear BESS microgrid frequency with delay</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bidirectional_tank_level.html">Process: bidirectional-pump nonlinear tank</a></li>
+<li class="toctree-l1"><a class="reference internal" href="soil_carbon_priming.html">Soil ecology: carbon priming</a></li>
+<li class="toctree-l1"><a class="reference internal" href="soil_carbon_priming_with_delay.html">Soil ecology: carbon priming with delay</a></li>
+<li class="toctree-l1"><a class="reference internal" href="soil_denitrification_aeration.html">Soil ecology: denitrification controlled by aeration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="soil_microbe_cn_stoichiometry.html">Soil ecology: microbial C-N stoichiometry</a></li>
+<li class="toctree-l1"><a class="reference internal" href="soil_microbe_carbon_respiration.html">Soil ecology: microbial carbon respiration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="soil_moisture_respiration_with_delay.html">Soil ecology: moisture respiration with delay</a></li>
+<li class="toctree-l1"><a class="reference internal" href="soil_moisture_respiration.html">Soil ecology: moisture-controlled respiration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="soil_nitrogen_n2o.html">Soil ecology: nitrogen transformations and N2O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="peltier_thermal_asymmetric.html">Thermal: asymmetric Peltier system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wireless_power_snr.html">Wireless: transmit-power / SNR control</a></li>
+</ul>
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">SISO Adaptive Control</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Software modes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../software_overview.html">Software overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../measured_data.html">Measured-data input and processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scope_and_limitations.html">Purpose, scope and limitations</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Models and control</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Plant models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#mathematical-notation">Mathematical notation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../honu/index.html">HONU, learning methods, and GUI parameters</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../scope_and_limitations.html" title="previous chapter">Purpose, scope and limitations</a></li>
+      <li>Next: <a href="accelerator_rf_cavity_amplitude.html" title="next chapter">Accelerator: RF cavity amplitude</a></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/models/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
