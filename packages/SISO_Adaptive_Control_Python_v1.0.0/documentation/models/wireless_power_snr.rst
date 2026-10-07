@@ -157,8 +157,8 @@ The first column gives the readable mathematical notation, the second gives the 
      - ``y`` / ``snr_deviation``
      - SNR deviation
    * - :math:`p(t)`
-     - ``transmit_power``
-     - Transmit power
+     - ``transmit_power`` / ``p``
+     - Actual power or actuator state after first-order dynamics
    * - :math:`\gamma(t)`
      - ``snr``
      - Effective SNR
@@ -168,9 +168,6 @@ The first column gives the readable mathematical notation, the second gives the 
    * - :math:`I(t)`
      - ``interference``
      - Noise and interference
-   * - :math:`p(t)`
-     - ``p``
-     - Actual power or actuator state after first-order dynamics.
 
 Additional symbols
 ------------------
