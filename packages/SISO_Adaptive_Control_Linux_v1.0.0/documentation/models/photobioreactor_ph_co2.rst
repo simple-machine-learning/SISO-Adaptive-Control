@@ -198,29 +198,17 @@ The first column gives the readable mathematical notation, the second gives the 
      - ``pH``
      - pH
    * - :math:`C(t)`
-     - ``CO2``
-     - Dissolved CO2
+     - ``CO2`` / ``C``
+     - Dissolved-CO2 concentration state
    * - :math:`X(t)`
-     - ``biomass``
+     - ``biomass`` / ``X``
      - Biomass concentration
    * - :math:`Q(t)`
-     - ``CO2_flow``
-     - CO2 flow
+     - ``CO2_flow`` / ``Q``
+     - Actual gas-flow or infusion-flow state after actuator dynamics
    * - :math:`I(t)`
-     - ``light``
-     - Light intensity
-   * - :math:`C(t)`
-     - ``C``
-     - Dissolved-CO2 concentration state.
-   * - :math:`X(t)`
-     - ``X``
-     - Biomass concentration.
-   * - :math:`Q(t)`
-     - ``Q``
-     - Actual gas-flow or infusion-flow state after actuator dynamics.
-   * - :math:`I(t)`
-     - ``I``
-     - Light-intensity state following the imposed illumination profile.
+     - ``light`` / ``I``
+     - Light-intensity state following the imposed illumination profile
 
 Additional symbols
 ------------------
