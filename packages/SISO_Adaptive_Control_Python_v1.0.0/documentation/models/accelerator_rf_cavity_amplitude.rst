@@ -146,23 +146,17 @@ The first column gives the readable mathematical notation, the second gives the 
      - ``y`` / ``field_deviation``
      - Cavity-field amplitude deviation
    * - :math:`V(t)`
-     - ``field_amplitude``
-     - Cavity-field amplitude
+     - ``field_amplitude`` / ``V``
+     - RF-cavity field-amplitude state governed by the nonlinear cavity balance
    * - :math:`a(t)`
-     - ``rf_drive``
-     - RF amplifier output
+     - ``rf_drive`` / ``a``
+     - Actual RF-amplifier drive state following the commanded drive through first-order amplifier dynamics
    * - :math:`P_b(t)`
      - ``beam_loading``
      - Beam-loading term
    * - :math:`k_dV^3(t)`
      - ``detuning_loss``
      - Nonlinear detuning loss
-   * - :math:`V(t)`
-     - ``V``
-     - RF-cavity field-amplitude state governed by the nonlinear cavity balance.
-   * - :math:`a(t)`
-     - ``a``
-     - Actual RF-amplifier drive state following the commanded drive through first-order amplifier dynamics.
 
 Additional symbols
 ------------------
