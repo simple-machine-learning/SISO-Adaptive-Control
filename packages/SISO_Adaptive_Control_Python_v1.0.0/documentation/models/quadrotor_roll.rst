@@ -156,29 +156,17 @@ The first column gives the readable mathematical notation, the second gives the 
      - ``u``
      - Roll-torque command
    * - :math:`\phi(t)`
-     - ``y`` / ``roll``
-     - Roll angle
+     - ``y`` / ``roll`` / ``phi``
+     - Roll-angle state
    * - :math:`\omega(t)`
-     - ``roll_rate``
-     - Roll rate
+     - ``roll_rate`` / ``w``
+     - Roll angular-velocity state
    * - :math:`\tau(t)`
-     - ``torque``
-     - Roll torque
+     - ``torque`` / ``tau``
+     - Actual actuator torque state after the first-order torque dynamics
    * - :math:`J(t)`
-     - ``inertia``
-     - Roll inertia
-   * - :math:`\phi(t)`
-     - ``phi``
-     - Roll-angle state.
-   * - :math:`\omega(t)`
-     - ``w``
-     - Roll angular-velocity state.
-   * - :math:`\tau(t)`
-     - ``tau``
-     - Actual actuator torque state after the first-order torque dynamics.
-   * - :math:`J(t)`
-     - ``J``
-     - Time-varying roll-axis moment-of-inertia state.
+     - ``inertia`` / ``J``
+     - Time-varying roll-axis moment-of-inertia state
 
 Additional symbols
 ------------------
