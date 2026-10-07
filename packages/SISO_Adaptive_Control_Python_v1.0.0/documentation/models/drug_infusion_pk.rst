@@ -153,7 +153,7 @@ The first column gives the readable mathematical notation, the second gives the 
    * - :math:`u(t)`
      - ``u``
      - Infusion command
-   * - :math:`C_{1}(t)`
+   * - :math:`\Delta C_{1}(t)`
      - ``y`` / ``central_concentration_deviation``
      - Central concentration deviation
    * - :math:`C_{1}(t)`
@@ -162,10 +162,10 @@ The first column gives the readable mathematical notation, the second gives the 
    * - :math:`C_{2}(t)`
      - ``peripheral_concentration``
      - Peripheral concentration
-   * - :math:`Rin(t)`
+   * - :math:`R(t)`
      - ``infusion_rate``
      - Infusion rate
-   * - :math:`Rel(t)`
+   * - :math:`v_e(C_1(t))`
      - ``elimination``
      - Elimination rate
    * - :math:`C_{1}(t)`
