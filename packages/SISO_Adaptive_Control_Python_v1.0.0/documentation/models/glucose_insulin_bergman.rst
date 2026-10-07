@@ -171,35 +171,20 @@ The first column gives the readable mathematical notation, the second gives the 
      - ``y`` / ``glucose_deviation``
      - Glucose deviation
    * - :math:`G(t)`
-     - ``glucose``
-     - Plasma glucose
+     - ``glucose`` / ``G``
+     - Plasma glucose concentration
    * - :math:`I(t)`
-     - ``insulin``
-     - Plasma insulin
+     - ``insulin`` / ``I``
+     - Plasma insulin concentration
    * - :math:`X(t)`
-     - ``remote_insulin_effect``
-     - Remote insulin effect
+     - ``remote_insulin_effect`` / ``X``
+     - Remote insulin-effect state
    * - :math:`U(t)`
-     - ``infusion_rate``
-     - Insulin infusion rate
+     - ``infusion_rate`` / ``U``
+     - Actual insulin-infusion state after pump dynamics
    * - :math:`D(t)`
-     - ``meal_disturbance``
-     - Meal disturbance
-   * - :math:`G(t)`
-     - ``G``
-     - Blood-glucose concentration.
-   * - :math:`X(t)`
-     - ``X``
-     - Remote insulin-effect state.
-   * - :math:`I(t)`
-     - ``I``
-     - Plasma-insulin concentration.
-   * - :math:`U(t)`
-     - ``U``
-     - Actual insulin-infusion state after pump dynamics.
-   * - :math:`D(t)`
-     - ``D``
-     - Meal-disturbance state following the modeled meal appearance profile.
+     - ``meal_disturbance`` / ``D``
+     - Meal-disturbance state
 
 Additional symbols
 ------------------
