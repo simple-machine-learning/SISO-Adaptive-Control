@@ -188,35 +188,20 @@ The first column gives the readable mathematical notation, the second gives the 
      - ``y`` / ``effect_deviation``
      - Pharmacodynamic effect deviation
    * - :math:`C_{1}(t)`
-     - ``central_concentration``
-     - Central concentration
+     - ``central_concentration`` / ``C1``
+     - Central-compartment drug concentration
    * - :math:`C_{2}(t)`
-     - ``peripheral_concentration``
-     - Peripheral concentration
+     - ``peripheral_concentration`` / ``C2``
+     - Peripheral-compartment drug concentration
    * - :math:`C_e(t)`
-     - ``effect_concentration``
-     - Effect-site concentration
+     - ``effect_concentration`` / ``Ce``
+     - Effect-site drug concentration
    * - :math:`R(t)`
-     - ``infusion_rate``
-     - Infusion rate
+     - ``infusion_rate`` / ``R``
+     - Actual infusion-rate state after pump dynamics
    * - :math:`E(t)`
-     - ``effect``
-     - Pharmacodynamic effect
-   * - :math:`C_{1}(t)`
-     - ``C1``
-     - Central-compartment drug concentration.
-   * - :math:`C_{2}(t)`
-     - ``C2``
-     - Peripheral-compartment drug concentration.
-   * - :math:`C_e(t)`
-     - ``Ce``
-     - Effect-site drug concentration.
-   * - :math:`R(t)`
-     - ``R``
-     - Actual infusion-rate state after pump dynamics.
-   * - :math:`E(t)`
-     - ``E``
-     - Filtered pharmacodynamic effect returned as the controlled output.
+     - ``effect`` / ``E``
+     - Filtered pharmacodynamic effect returned as the controlled output
 
 Additional symbols
 ------------------
