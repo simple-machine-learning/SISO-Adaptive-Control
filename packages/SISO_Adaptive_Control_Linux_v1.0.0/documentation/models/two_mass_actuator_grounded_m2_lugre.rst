@@ -230,13 +230,10 @@ The first column gives the readable mathematical notation, the second gives the 
    * - :math:`F_{2}(t)`
      - ``F2``
      - Coupling force
-   * - :math:`zf(t)`
-     - ``z_f``
-     - LuGre internal state
    * - :math:`z_f(t)`
      - ``z_f``
-     - Friction internal state; retained for interface compatibility and constant in the viscous model
-   * - :math:`Ff(t)`
+     - LuGre internal state
+   * - :math:`F_f(t)`
      - ``F_f``
      - Friction force
 
