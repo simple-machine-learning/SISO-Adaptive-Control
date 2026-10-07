@@ -174,7 +174,7 @@ The first column gives the readable mathematical notation, the second gives the 
    * - :math:`u(t)`
      - ``u``
      - Agitation command
-   * - :math:`C-C_0(t)`
+   * - :math:`\Delta C_{\mathrm{O_2}}(t)`
      - ``y`` / ``C_O2_deviation``
      - Dissolved oxygen deviation
    * - :math:`C(t)`
