@@ -166,19 +166,19 @@ The first column gives the readable mathematical notation, the second gives the 
      - ``u``
      - BESS power command
    * - :math:`\Delta f(t)`
-     - ``y`` / ``frequency_deviation``
-     - Grid-frequency deviation
+     - ``y`` / ``frequency_deviation`` / ``df``
+     - Grid-frequency deviation; this is the controlled output returned as ``y``
    * - :math:`x_g(t)`
-     - ``governor_output``
-     - Governor output
+     - ``governor_output`` / ``xg``
+     - Governor output state that drives the turbine mechanical-power dynamics
    * - :math:`p_m(t)`
-     - ``diesel_power``
-     - Diesel mechanical power
+     - ``diesel_power`` / ``pm``
+     - Turbine mechanical-power state entering the grid power-balance equation
    * - :math:`p_b(t)`
-     - ``bess_power``
-     - BESS power
+     - ``bess_power`` / ``pb``
+     - BESS power state
    * - :math:`SOC(t)`
-     - ``state_of_charge``
+     - ``state_of_charge`` / ``soc``
      - Battery state of charge
    * - :math:`P_L`
      - ``load_disturbance``
@@ -186,21 +186,6 @@ The first column gives the readable mathematical notation, the second gives the 
    * - :math:`f_0+\Delta f(t)`
      - ``frequency_hz``
      - Grid frequency
-   * - :math:`x_g(t)`
-     - ``xg``
-     - Governor output state that drives the turbine mechanical-power dynamics.
-   * - :math:`p_m(t)`
-     - ``pm``
-     - Turbine mechanical-power state entering the grid power-balance equation.
-   * - :math:`\Delta f(t)`
-     - ``df``
-     - Grid-frequency deviation; this is the controlled output returned as ``y``.
-   * - :math:`p_b(t)`
-     - ``pb``
-     - BESS power state.
-   * - :math:`SOC(t)`
-     - ``soc``
-     - Battery state of charge.
 
 Additional symbols
 ------------------
