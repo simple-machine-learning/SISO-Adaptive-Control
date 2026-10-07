@@ -191,7 +191,7 @@ The first column gives the readable mathematical notation, the second gives the 
    * - :math:`u(t)`
      - ``u``
      - CO2 dosing command
-   * - :math:`pH(t)`
+   * - :math:`\Delta pH(t)`
      - ``y`` / ``pH_deviation``
      - pH deviation
    * - :math:`pH(t)`
