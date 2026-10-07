@@ -136,25 +136,25 @@ The first column gives the readable mathematical notation, the second gives the 
    * - :math:`\Delta f(t)`
      - ``y`` / ``frequency_deviation``
      - Grid-frequency deviation
-   * - :math:`Pg(t)`
+   * - :math:`x_g(t)`
      - ``governor_output``
      - Governor output
-   * - :math:`Pm(t)`
+   * - :math:`p_m(t)`
      - ``mechanical_power``
      - Diesel mechanical power
-   * - :math:`PL(t)`
+   * - :math:`P_L`
      - ``load_disturbance``
      - Load disturbance
-   * - :math:`f(t)`
+   * - :math:`f_0+\Delta f(t)`
      - ``frequency_hz``
      - Grid frequency
-   * - :math:`xg(t)`
+   * - :math:`x_g(t)`
      - ``xg``
      - Governor output state that drives the turbine mechanical-power dynamics.
-   * - :math:`pm(t)`
+   * - :math:`p_m(t)`
      - ``pm``
      - Turbine mechanical-power state entering the grid power-balance equation.
-   * - :math:`df(t)`
+   * - :math:`\Delta f(t)`
      - ``df``
      - Grid-frequency deviation; this is the controlled output returned as ``y``.
 
