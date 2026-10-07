@@ -160,7 +160,7 @@ The first column gives the readable mathematical notation, the second gives the 
    * - :math:`u(t)`
      - ``u``
      - Collective-thrust command
-   * - :math:`h(t)`
+   * - :math:`z(t)`
      - ``y`` / ``altitude``
      - Altitude
    * - :math:`v(t)`
@@ -174,13 +174,13 @@ The first column gives the readable mathematical notation, the second gives the 
      - Vehicle mass
    * - :math:`z(t)`
      - ``z``
-     - LuGre internal bristle-deflection state used to compute friction force.
+     - Altitude state.
    * - :math:`v(t)`
      - ``v``
      - Velocity state associated with the corresponding position state.
    * - :math:`T(t)`
      - ``T``
-     - Altitude state.
+     - Collective-thrust state after actuator dynamics.
    * - :math:`m(t)`
      - ``m``
      - Vehicle-mass state.
