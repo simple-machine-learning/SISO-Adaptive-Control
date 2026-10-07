@@ -178,29 +178,20 @@ The first column gives the readable mathematical notation, the second gives the 
      - ``y`` / ``C_O2_deviation``
      - Dissolved oxygen deviation
    * - :math:`C(t)`
-     - ``C_O2``
-     - Dissolved oxygen
+     - ``C_O2`` / ``C``
+     - Dissolved-oxygen concentration state used in the oxygen-transfer and Monod terms
    * - :math:`X(t)`
-     - ``biomass``
+     - ``biomass`` / ``X``
      - Biomass concentration
    * - :math:`N(t)`
-     - ``agitation``
-     - Agitation speed
+     - ``agitation`` / ``N``
+     - Actual agitation-speed state after the first-order actuator dynamics
    * - :math:`k_La(t)`
      - ``kla``
      - Oxygen transfer coefficient
    * - :math:`OUR(t)`
      - ``OUR``
      - Oxygen uptake rate
-   * - :math:`C(t)`
-     - ``C``
-     - Dissolved-oxygen concentration state used in the oxygen-transfer and Monod terms.
-   * - :math:`X(t)`
-     - ``X``
-     - Biomass concentration.
-   * - :math:`N(t)`
-     - ``N``
-     - Actual agitation-speed state after the first-order actuator dynamics.
 
 Additional symbols
 ------------------
