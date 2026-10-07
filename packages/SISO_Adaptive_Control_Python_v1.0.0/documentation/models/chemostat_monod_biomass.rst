@@ -153,7 +153,7 @@ The first column gives the readable mathematical notation, the second gives the 
    * - :math:`u(t)`
      - ``u``
      - Dilution-rate command
-   * - :math:`X-X_0(t)`
+   * - :math:`\Delta X(t)`
      - ``y`` / ``biomass_deviation``
      - Biomass deviation
    * - :math:`X(t)`
