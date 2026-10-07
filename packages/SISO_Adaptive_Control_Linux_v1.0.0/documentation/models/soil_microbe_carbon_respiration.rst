@@ -155,22 +155,22 @@ The first column gives the readable mathematical notation, the second gives the 
    * - :math:`\Delta R_{\mathrm{CO_2}}`
      - ``y`` / ``respiration_deviation``
      - CO2-flux deviation
-   * - :math:`Cs(t)`
+   * - :math:`S(t)`
      - ``labile_carbon``
      - Labile carbon pool
    * - :math:`B(t)`
      - ``microbial_biomass``
      - Microbial biomass
-   * - :math:`ru(t)`
+   * - :math:`r_u(t)`
      - ``carbon_uptake``
      - Microbial carbon uptake
-   * - :math:`Rco_{2}(t)`
+   * - :math:`R_{\mathrm{CO_2}}(t)`
      - ``co2_flux``
      - Soil CO2 flux
-   * - :math:`s(t)`
+   * - :math:`S(t)`
      - ``s``
      - Substrate/resource state.
-   * - :math:`b(t)`
+   * - :math:`B(t)`
      - ``b``
      - Microbial biomass state.
 
