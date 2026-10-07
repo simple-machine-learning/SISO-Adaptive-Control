@@ -163,19 +163,19 @@ The first column gives the readable mathematical notation, the second gives the 
    * - :math:`\theta(t)`
      - ``soil_moisture``
      - Volumetric soil moisture
-   * - :math:`Cs(t)`
+   * - :math:`C(t)`
      - ``available_carbon``
      - Available carbon
-   * - :math:`Rco_{2}(t)`
+   * - :math:`R_C(t)`
      - ``co2_flux``
      - Soil CO2 flux
-   * - :math:`ftheta(t)`
+   * - :math:`a(\theta(t))`
      - ``moisture_activity``
      - Moisture activity factor
    * - :math:`\theta(t)`
      - ``theta``
      - Volumetric soil-moisture state.
-   * - :math:`carbon(t)`
+   * - :math:`C(t)`
      - ``carbon``
      - Soil-carbon pool state.
 
