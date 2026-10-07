@@ -1126,6 +1126,33 @@ def make_reference(n, excitation, cfg, rng):
 
 
 
+def save_sampled_uy(t, u, y, cfg):
+    """Save physical ODE input/output data at the active MPC sampling period."""
+    t = np.asarray(t, dtype=float).reshape(-1)
+    u = np.asarray(u, dtype=float).reshape(-1)
+    y = np.asarray(y, dtype=float).reshape(-1)
+    if not (t.size == u.size == y.size):
+        raise ValueError("Sampled t, u, y arrays must have the same length")
+
+    out_file = Path(__file__).resolve().parent / "data_uy.txt"
+    dt_mpc = float(cfg["dt_control"])
+    dt_sim = float(cfg["dt_sim"])
+    header = (
+        "t\\tu\\ty\\n"
+        f"model_name={cfg['plant_model']}, dt={dt_mpc:g} sec, dt_sim={dt_sim:g} sec, "
+        f"sampling=MPC, preg_blackbox_enabled={bool(cfg.get('preg_blackbox_enabled', False))}, "
+        f"r_preg={float(cfg.get('r_preg', 1.0)):g}"
+    )
+    np.savetxt(
+        out_file,
+        np.column_stack((t, u, y)),
+        fmt="%.10e",
+        delimiter="\\t",
+        header=header,
+    )
+    print(f"Saved sampled physical data: {out_file} (dt_MPC={dt_mpc:g} s)")
+
+
 def run_simulation_only(cfg):
     """Simulate the physical ODE plant on dt_sim and retain dt_MPC samples."""
     rng = np.random.default_rng(int(cfg["seed"]))
@@ -1187,6 +1214,7 @@ def run_simulation_only(cfg):
     sample_idx = np.clip(sample_idx, 0, n_sim - 1)
     y_mpc = y_sim[sample_idx]
     u_mpc = u_sim[sample_idx]
+    save_sampled_uy(t_mpc, u_mpc, y_mpc, cfg)
 
     zeros = np.zeros(n_sim)
     direct_base_count = cfg["n_y"] + cfg["n_u"] + int(cfg["horizon"])
