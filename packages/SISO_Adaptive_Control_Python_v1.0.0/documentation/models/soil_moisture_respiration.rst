@@ -161,23 +161,17 @@ The first column gives the readable mathematical notation, the second gives the 
      - ``y`` / ``respiration_deviation``
      - CO2-flux deviation
    * - :math:`\theta(t)`
-     - ``soil_moisture``
-     - Volumetric soil moisture
+     - ``soil_moisture`` / ``theta``
+     - Volumetric soil-moisture state
    * - :math:`C(t)`
-     - ``available_carbon``
-     - Available carbon
+     - ``available_carbon`` / ``carbon``
+     - Soil-carbon pool state
    * - :math:`R_C(t)`
      - ``co2_flux``
      - Soil CO2 flux
    * - :math:`a(\theta(t))`
      - ``moisture_activity``
      - Moisture activity factor
-   * - :math:`\theta(t)`
-     - ``theta``
-     - Volumetric soil-moisture state.
-   * - :math:`C(t)`
-     - ``carbon``
-     - Soil-carbon pool state.
 
 Additional symbols
 ------------------
