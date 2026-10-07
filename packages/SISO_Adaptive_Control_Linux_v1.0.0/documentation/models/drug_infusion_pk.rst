@@ -157,26 +157,17 @@ The first column gives the readable mathematical notation, the second gives the 
      - ``y`` / ``central_concentration_deviation``
      - Central concentration deviation
    * - :math:`C_{1}(t)`
-     - ``central_concentration``
-     - Central concentration
+     - ``central_concentration`` / ``C1``
+     - Central-compartment drug concentration
    * - :math:`C_{2}(t)`
-     - ``peripheral_concentration``
-     - Peripheral concentration
+     - ``peripheral_concentration`` / ``C2``
+     - Peripheral-compartment drug concentration
    * - :math:`R(t)`
-     - ``infusion_rate``
-     - Infusion rate
+     - ``infusion_rate`` / ``R``
+     - Actual infusion-rate state after pump dynamics
    * - :math:`v_e(C_1(t))`
      - ``elimination``
      - Elimination rate
-   * - :math:`C_{1}(t)`
-     - ``C1``
-     - Central-compartment drug concentration.
-   * - :math:`C_{2}(t)`
-     - ``C2``
-     - Peripheral-compartment drug concentration.
-   * - :math:`R(t)`
-     - ``R``
-     - Actual infusion-rate state after pump dynamics.
 
 Additional symbols
 ------------------
