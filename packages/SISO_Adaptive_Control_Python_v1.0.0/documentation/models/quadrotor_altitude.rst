@@ -161,29 +161,17 @@ The first column gives the readable mathematical notation, the second gives the 
      - ``u``
      - Collective-thrust command
    * - :math:`z(t)`
-     - ``y`` / ``altitude``
-     - Altitude
+     - ``y`` / ``altitude`` / ``z``
+     - Altitude state
    * - :math:`v(t)`
-     - ``vertical_velocity``
-     - Vertical velocity
+     - ``vertical_velocity`` / ``v``
+     - Velocity state associated with the corresponding position state
    * - :math:`T(t)`
-     - ``thrust``
-     - Collective thrust
+     - ``thrust`` / ``T``
+     - Collective-thrust state after actuator dynamics
    * - :math:`m(t)`
-     - ``mass``
-     - Vehicle mass
-   * - :math:`z(t)`
-     - ``z``
-     - Altitude state.
-   * - :math:`v(t)`
-     - ``v``
-     - Velocity state associated with the corresponding position state.
-   * - :math:`T(t)`
-     - ``T``
-     - Collective-thrust state after actuator dynamics.
-   * - :math:`m(t)`
-     - ``m``
-     - Vehicle-mass state.
+     - ``mass`` / ``m``
+     - Vehicle-mass state
 
 Additional symbols
 ------------------
