@@ -181,23 +181,17 @@ The first column gives the readable mathematical notation, the second gives the 
      - ``y`` / ``latency_deviation``
      - Response-time deviation
    * - :math:`x(t)`
-     - ``backlog``
-     - Pending workload
+     - ``backlog`` / ``x``
+     - Pending-workload or backlog state
    * - :math:`c(t)`
-     - ``allocated_capacity``
-     - Allocated compute capacity
+     - ``allocated_capacity`` / ``c``
+     - Allocated compute-capacity state after first-order provisioning dynamics
    * - :math:`s(x,c)`
      - ``service_rate``
      - Completed workload rate
    * - :math:`\tau(t)`
      - ``response_time``
      - Response-time proxy
-   * - :math:`x(t)`
-     - ``x``
-     - Pending-workload or backlog state.
-   * - :math:`c(t)`
-     - ``c``
-     - Allocated compute-capacity state after first-order provisioning dynamics.
 
 Additional symbols
 ------------------
