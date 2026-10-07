@@ -184,7 +184,7 @@ The first column gives the readable mathematical notation, the second gives the 
    * - :math:`u(t)`
      - ``u``
      - Infusion command
-   * - :math:`E(t)`
+   * - :math:`\Delta E(t)`
      - ``y`` / ``effect_deviation``
      - Pharmacodynamic effect deviation
    * - :math:`C_{1}(t)`
@@ -193,10 +193,10 @@ The first column gives the readable mathematical notation, the second gives the 
    * - :math:`C_{2}(t)`
      - ``peripheral_concentration``
      - Peripheral concentration
-   * - :math:`Ce(t)`
+   * - :math:`C_e(t)`
      - ``effect_concentration``
      - Effect-site concentration
-   * - :math:`Rin(t)`
+   * - :math:`R(t)`
      - ``infusion_rate``
      - Infusion rate
    * - :math:`E(t)`
@@ -208,7 +208,7 @@ The first column gives the readable mathematical notation, the second gives the 
    * - :math:`C_{2}(t)`
      - ``C2``
      - Peripheral-compartment drug concentration.
-   * - :math:`Ce(t)`
+   * - :math:`C_e(t)`
      - ``Ce``
      - Effect-site drug concentration.
    * - :math:`R(t)`
