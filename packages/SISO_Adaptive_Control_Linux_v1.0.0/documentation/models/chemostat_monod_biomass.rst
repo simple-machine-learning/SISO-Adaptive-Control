@@ -157,26 +157,17 @@ The first column gives the readable mathematical notation, the second gives the 
      - ``y`` / ``biomass_deviation``
      - Biomass deviation
    * - :math:`X(t)`
-     - ``biomass``
+     - ``biomass`` / ``X``
      - Biomass concentration
    * - :math:`S(t)`
-     - ``substrate``
+     - ``substrate`` / ``S``
      - Substrate concentration
    * - :math:`D(t)`
-     - ``dilution``
-     - Dilution rate
+     - ``dilution`` / ``D``
+     - Actual dilution-rate state after actuator dynamics
    * - :math:`\mu(t)`
      - ``growth_rate``
      - Specific growth rate
-   * - :math:`X(t)`
-     - ``X``
-     - Biomass concentration.
-   * - :math:`S(t)`
-     - ``S``
-     - Substrate concentration.
-   * - :math:`D(t)`
-     - ``D``
-     - Actual dilution-rate state after actuator dynamics.
 
 Additional symbols
 ------------------
