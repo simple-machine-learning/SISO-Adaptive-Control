@@ -149,8 +149,8 @@ The first column gives the readable mathematical notation, the second gives the 
      - ``y`` / ``queue_deviation``
      - Queue occupancy deviation, :math:`\Delta q=q-q_0`
    * - :math:`q(t)`
-     - ``queue``
-     - Queue occupancy
+     - ``queue`` / ``q``
+     - Queue/backlog state; this quantity determines the reported latency or queue output
    * - :math:`r_{\mathrm{in}}(t)`
      - ``admitted_rate``
      - Admitted traffic rate
@@ -160,9 +160,6 @@ The first column gives the readable mathematical notation, the second gives the 
    * - :math:`\tau_q(t)`
      - ``delay``
      - Queueing-delay proxy
-   * - :math:`q(t)`
-     - ``q``
-     - Queue/backlog state; this quantity determines the reported latency or queue output.
    * - :math:`r(t)`
      - ``r``
      - Actual controllable rate state after first-order actuator dynamics.
