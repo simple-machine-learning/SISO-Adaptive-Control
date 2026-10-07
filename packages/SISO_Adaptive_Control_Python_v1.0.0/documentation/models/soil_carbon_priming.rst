@@ -183,29 +183,20 @@ The first column gives the readable mathematical notation, the second gives the 
      - ``y`` / ``respiration_deviation``
      - CO2-flux deviation
    * - :math:`C_l(t)`
-     - ``labile_carbon``
+     - ``labile_carbon`` / ``cl``
      - Labile carbon pool
    * - :math:`C_s(t)`
-     - ``stable_carbon``
+     - ``stable_carbon`` / ``cs``
      - Stable soil carbon pool
    * - :math:`B(t)`
-     - ``microbial_biomass``
-     - Microbial biomass
+     - ``microbial_biomass`` / ``b``
+     - Microbial biomass state
    * - :math:`P(t)`
      - ``priming_factor``
      - Priming multiplier
    * - :math:`R_{\mathrm{CO_2}}(t)`
      - ``co2_flux``
      - Soil CO2 flux
-   * - :math:`C_l(t)`
-     - ``cl``
-     - Labile-carbon pool.
-   * - :math:`C_s(t)`
-     - ``cs``
-     - Stable-carbon pool.
-   * - :math:`B(t)`
-     - ``b``
-     - Microbial biomass state.
 
 Additional symbols
 ------------------
