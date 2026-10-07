@@ -169,41 +169,26 @@ The first column gives the readable mathematical notation, the second gives the 
      - ``y`` / ``payload_position``
      - Horizontal payload position
    * - :math:`x(t)`
-     - ``trolley_position``
-     - Trolley position
+     - ``trolley_position`` / ``x``
+     - Trolley-position state
    * - :math:`v(t)`
-     - ``trolley_velocity``
-     - Trolley velocity
+     - ``trolley_velocity`` / ``v``
+     - Velocity state associated with the corresponding position state
    * - :math:`\theta(t)`
-     - ``sway_angle``
-     - Payload sway angle
+     - ``sway_angle`` / ``theta``
+     - Payload sway-angle state
    * - :math:`\omega(t)`
-     - ``sway_rate``
-     - Payload sway rate
+     - ``sway_rate`` / ``omega``
+     - Angular velocity state
    * - :math:`y_L(t)`
      - ``payload_vertical_position``
      - Payload vertical position
    * - :math:`F(t)`
-     - ``drive_force``
-     - Trolley drive force
+     - ``drive_force`` / ``force``
+     - Actual actuator-force state after actuator dynamics and saturation
    * - :math:`F_e(t)`
      - ``end_stop_force``
      - Travel-limit force
-   * - :math:`x(t)`
-     - ``x``
-     - Trolley-position state.
-   * - :math:`v(t)`
-     - ``v``
-     - Velocity state associated with the corresponding position state.
-   * - :math:`\theta(t)`
-     - ``theta``
-     - Payload sway-angle state.
-   * - :math:`\omega(t)`
-     - ``omega``
-     - Angular velocity state.
-   * - :math:`F(t)`
-     - ``force``
-     - Actual actuator-force state after actuator dynamics and saturation.
 
 Additional symbols
 ------------------
