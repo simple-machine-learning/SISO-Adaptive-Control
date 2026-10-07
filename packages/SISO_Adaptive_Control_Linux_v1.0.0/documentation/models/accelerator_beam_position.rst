@@ -137,26 +137,17 @@ The first column gives the readable mathematical notation, the second gives the 
      - ``u``
      - Corrector-magnet command
    * - :math:`x(t)`
-     - ``y`` / ``position``
-     - Transverse beam position
+     - ``y`` / ``position`` / ``x``
+     - Transverse beam-position state
    * - :math:`v(t)`
-     - ``beam_velocity``
-     - Transverse beam velocity
+     - ``beam_velocity`` / ``v``
+     - Velocity state associated with the corresponding position state
    * - :math:`m(t)`
-     - ``magnet_field``
-     - Corrector field
+     - ``magnet_field`` / ``m``
+     - Actual corrector-magnet field state after first-order actuator dynamics
    * - :math:`F_r(t)`
      - ``restoring_force``
      - Effective restoring term
-   * - :math:`x(t)`
-     - ``x``
-     - Transverse beam-position state.
-   * - :math:`v(t)`
-     - ``v``
-     - Velocity state associated with the corresponding position state.
-   * - :math:`m(t)`
-     - ``m``
-     - Actual corrector-magnet field state after first-order actuator dynamics.
 
 Additional symbols
 ------------------
