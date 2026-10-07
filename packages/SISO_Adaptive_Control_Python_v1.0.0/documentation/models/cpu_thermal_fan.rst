@@ -160,23 +160,17 @@ The first column gives the readable mathematical notation, the second gives the 
      - ``y`` / ``temperature_deviation``
      - Chip-temperature deviation
    * - :math:`T(t)`
-     - ``temperature``
-     - Chip temperature
+     - ``temperature`` / ``T``
+     - Chip-temperature state
    * - :math:`f(t)`
-     - ``fan_speed``
-     - Normalized fan speed
+     - ``fan_speed`` / ``fan``
+     - Actual fan-command state after first-order fan dynamics
    * - :math:`P(t)`
      - ``chip_power``
      - Chip heat generation
    * - :math:`Q_c(t)`
      - ``cooling_power``
      - Cooling heat flow
-   * - :math:`T(t)`
-     - ``T``
-     - Chip-temperature state.
-   * - :math:`f(t)`
-     - ``fan``
-     - Actual fan-command state after first-order fan dynamics.
 
 Additional symbols
 ------------------
