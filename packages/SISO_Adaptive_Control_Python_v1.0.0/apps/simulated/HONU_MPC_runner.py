@@ -1090,7 +1090,7 @@ def save_sampled_uy(t, u, y, cfg):
     dt_mpc = float(cfg["dt_control"])
     dt_sim = float(cfg["dt_sim"])
     header = (
-        "t\\tu\\ty\\n"
+        "t\tu\ty\n"
         f"model_name={cfg['plant_model']}, dt={dt_mpc:g} sec, dt_sim={dt_sim:g} sec, "
         f"sampling=MPC, preg_blackbox_enabled={bool(cfg.get('preg_blackbox_enabled', False))}, "
         f"r_preg={float(cfg.get('r_preg', 1.0)):g}"
@@ -1099,7 +1099,7 @@ def save_sampled_uy(t, u, y, cfg):
         out_file,
         np.column_stack((t, u, y)),
         fmt="%.10e",
-        delimiter="\\t",
+        delimiter="\t",
         header=header,
     )
     print(f"Saved sampled physical data: {out_file} (dt_MPC={dt_mpc:g} s)")
