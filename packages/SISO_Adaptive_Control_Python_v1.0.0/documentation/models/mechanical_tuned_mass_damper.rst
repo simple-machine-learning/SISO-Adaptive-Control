@@ -160,44 +160,29 @@ The first column gives the readable mathematical notation, the second gives the 
      - ``u``
      - Actuator-force command
    * - :math:`x_p(t)`
-     - ``y`` / ``primary_displacement``
-     - Primary-structure displacement
+     - ``y`` / ``primary_displacement`` / ``x_p``
+     - Primary-body displacement state
    * - :math:`v_p(t)`
-     - ``primary_velocity``
-     - Primary-structure velocity
+     - ``primary_velocity`` / ``v_p``
+     - Primary-body velocity state
    * - :math:`x_a(t)`
-     - ``absorber_displacement``
-     - Absorber displacement
+     - ``absorber_displacement`` / ``x_a``
+     - Actuator displacement state
    * - :math:`v_a(t)`
-     - ``absorber_velocity``
-     - Absorber velocity
+     - ``absorber_velocity`` / ``v_a``
+     - Actuator velocity state
    * - :math:`\Delta x(t)`
      - ``relative_displacement``
      - Absorber relative displacement
    * - :math:`F(t)`
-     - ``actuator_force``
-     - Actuator force
+     - ``actuator_force`` / ``force``
+     - Actual actuator-force state after actuator dynamics and saturation
    * - :math:`F_a(t)`
      - ``absorber_force``
      - Absorber coupling force
    * - :math:`F_g(t)`
      - ``primary_restoring_force``
      - Primary restoring force
-   * - :math:`x_{p}(t)`
-     - ``x_p``
-     - Primary-body displacement state.
-   * - :math:`v_{p}(t)`
-     - ``v_p``
-     - Primary-body velocity state.
-   * - :math:`x_{a}(t)`
-     - ``x_a``
-     - Actuator displacement state.
-   * - :math:`v_{a}(t)`
-     - ``v_a``
-     - Actuator velocity state.
-   * - :math:`F(t)`
-     - ``force``
-     - Actual actuator-force state after actuator dynamics and saturation.
 
 Additional symbols
 ------------------
