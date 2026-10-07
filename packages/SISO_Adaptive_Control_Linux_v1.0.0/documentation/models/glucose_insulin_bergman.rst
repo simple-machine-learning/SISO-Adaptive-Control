@@ -167,7 +167,7 @@ The first column gives the readable mathematical notation, the second gives the 
    * - :math:`u(t)`
      - ``u``
      - Insulin-infusion command
-   * - :math:`G(t)`
+   * - :math:`\Delta G(t)`
      - ``y`` / ``glucose_deviation``
      - Glucose deviation
    * - :math:`G(t)`
@@ -179,10 +179,10 @@ The first column gives the readable mathematical notation, the second gives the 
    * - :math:`X(t)`
      - ``remote_insulin_effect``
      - Remote insulin effect
-   * - :math:`Ri(t)`
+   * - :math:`U(t)`
      - ``infusion_rate``
      - Insulin infusion rate
-   * - :math:`Dm(t)`
+   * - :math:`D(t)`
      - ``meal_disturbance``
      - Meal disturbance
    * - :math:`G(t)`
@@ -190,7 +190,7 @@ The first column gives the readable mathematical notation, the second gives the 
      - Blood-glucose concentration.
    * - :math:`X(t)`
      - ``X``
-     - Biomass concentration.
+     - Remote insulin-effect state.
    * - :math:`I(t)`
      - ``I``
      - Plasma-insulin concentration.
@@ -199,7 +199,7 @@ The first column gives the readable mathematical notation, the second gives the 
      - Actual insulin-infusion state after pump dynamics.
    * - :math:`D(t)`
      - ``D``
-     - Actual dilution-rate state after actuator dynamics.
+     - Meal-disturbance state following the modeled meal appearance profile.
 
 Additional symbols
 ------------------
