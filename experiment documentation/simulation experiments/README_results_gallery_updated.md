@@ -1,6 +1,7 @@
 # SISO Adaptive Control — Representative Results
 
-This gallery contains representative MRAC and MPC results from selected simulated plants. The figures demonstrate achievable behavior and provide reproducible configuration references. They are not universal optimum settings.
+This gallery contains representative MRAC and MPC results from selected simulated plants. The figures demonstrate achievable behavior and provide reproducible configuration references. 
+**These are not universal optimum settings, and it may be possible to find better configurations and better results** 
 
 Correct setup is problem-dependent and may require adjustment of sampling, training interval, input excitation, delayed-input and delayed-output orders, model structure, learning parameters, prediction horizon, penalties, constraints, and reference signal. A practical workflow is to reproduce the nearest example and then change one parameter group at a time.
 
