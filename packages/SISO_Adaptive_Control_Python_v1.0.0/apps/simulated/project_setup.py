@@ -14,7 +14,7 @@ from shared_plant_model import default_params
 # =============================================================================
 
 #plant_model_name = "two_mass_actuator_grounded_m2_linear_viscous"
-plant_model_name = "overhead_crane_payload_sway_with_delay"
+plant_model_name = "microgrid_frequency_bess_nonlinear"
 plant_par = default_params(plant_model_name)
 
 # GUI selections. The actual architecture is selected by the 02/03/04 script
@@ -24,7 +24,7 @@ gui_controller_model = "LNU"
 
 # dt is the sampled-data period used by LNU/QNU identification and control.
 # dt_sim is only the internal maximum ODE integration step inside one ZOH interval.
-dt = 0.05
+dt = 0.1
 dt_sim = 0.01
 ode_solver_method = "auto"
 solver_setup = SimpleNamespace(
@@ -39,12 +39,12 @@ solver_setup = SimpleNamespace(
 # Module 01: physical plant data generation
 # =============================================================================
 
-t_end = 300.0
-input_type = "alternating_steps"
+t_end = 100.0
+input_type = "random_steps"
 # input_type = "alternating_steps"
 # input_type = "sine"
-u_amp = 1.5
-step_hold_sec = 30.0
+u_amp = 5.0
+step_hold_sec = 10.0
 sine_freq_hz = 0.2
 random_seed = 11
 
@@ -55,8 +55,8 @@ random_seed = 11
 # Plant HONU is then identified from u_new to y.
 # Optional fixed P-regulated black-box plant. The GUI can enable this for any
 # model. Recommended presets enable it only where verified.
-preg_blackbox_enabled = False
-r_preg = 1.0
+preg_blackbox_enabled = True
+r_preg = 2.0
 uy_file = "data_uy.txt"
 uy_normalized_file = "data_uy_normalized.txt"
 simulated_normalization_file = "simulated_normalization.npz"
@@ -67,13 +67,13 @@ simulated_normalization_file = "simulated_normalization.npz"
 
 # These values are used by both LNU and QNU plant scripts.
 tau_u = 0.0
-plant_n_y = 11
-plant_n_u = 12
+plant_n_y = 7
+plant_n_u = 7
 
 # Select only the source of the already-trained plant file loaded by 03 scripts.
 # The actual 02 script is still run manually.
 # The HONU architecture is NOT selected here; it is defined by the 03 script name.
-plant_training_method = "lm"# "batch" | "gd_ngd" | "lm"
+plant_training_method = "gd_ngd"# "batch" | "gd_ngd" | "lm"
 
 # Trained plant files.
 plant_lnu_file_batch = "plant_LNU_batch.txt"
@@ -130,7 +130,7 @@ plant_batch_plot_bibs_limit = True
 # Module 02 Levenberg-Marquardt plant identification
 # =============================================================================
 
-plant_lm_epochs = 30
+plant_lm_epochs = 100
 plant_lm_lambda = 1.0
 
 # =============================================================================
@@ -138,7 +138,7 @@ plant_lm_lambda = 1.0
 # =============================================================================
 
 plant_gd_ngd_learning = "NGD"
-plant_gd_ngd_epochs = 30
+plant_gd_ngd_epochs = 100
 
 # Architecture-specific learning-rate defaults.  mu_w remains the LNU value for
 # backward compatibility.  The QNU value is deliberately smaller because its
@@ -176,14 +176,14 @@ plant_eps = plant_gd_ngd_eps
 # loaded by module 03.
 
 controller_seed = 1
-Tau_1 = 0.05
-Tau_2 = 0.1
+Tau_1 = 0.1
+Tau_2 = 0.2
 
 # Reference d used by module 03 training and module 04 physical testing.
 # "steps" deterministically alternates d_max, d_min, d_max, ... after one initial block.
 # "random_steps" draws a new random level for every equal-duration block.
 # "plant_input" replays the module-01 excitation, bounded as described below.
-reference_type = "alternating_steps"# "steps" | "random_steps" | "plant_input"
+reference_type = "random_steps"# "steps" | "random_steps" | "plant_input"
 reference_seed = 17
 tau_d = 0.0
 
@@ -191,18 +191,18 @@ tau_d = 0.0
 # by both module 03 and module 04.
 # The physical ODE controlled output y is normalized with the fixed module-01 statistics. y is column 2
 # (zero based). These limits do not modify module-03 controller training.
-d_min = -0.9
-d_max = 0.9
+d_min = -1.0
+d_max = 1.0
 reference_measured_y_column = 4
-reference_duration_sec = 2000.0
-reference_step_hold_sec = 10.0
+reference_duration_sec = 300.0
+reference_step_hold_sec = 20.0
 
 plot_measured_plant_output = False
 
 r_0_min = 0.0
 r_0_max = 20.0
-u_min = -1.5
-u_max = 1.5
+u_min = -5.0
+u_max = 5.0
 v_norm_max = 100.0
 alpha_min = 1.0e-4
 r_0_init = 0.5
@@ -217,7 +217,7 @@ alpha_r_0_qnu = 0.5
 
 # Common LNU-controller learning setup.
 ctrl_learning = "NGD"
-ctrl_epochs = 10
+ctrl_epochs = 30
 mu_v = 0.01
 mu_r_0 = 0.0001
 ctrl_eps = 1.0e-4
